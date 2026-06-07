@@ -22,6 +22,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/**
+ *  test for deployment only
+ *  URL => /api/status
+ *  */
+Route::get('/status', function () {
+    return response()->json([
+        'status' => 'ok'
+    ]);
+});
+
 Route::prefix('v1')->group(function () {
 
     // Auth
