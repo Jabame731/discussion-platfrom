@@ -11,11 +11,17 @@
             "dest": "/build/$1"
         },
         {
-            "handle": "filesystem"
+            "src": "/favicon.ico",
+            "dest": "/favicon.ico"
+        },
+        {
+            "src": "/robots.txt",
+            "dest": "/robots.txt"
         },
         {
             "src": "/(.*)",
-            "dest": "/api/index.php"
+            "dest": "/api/index.php",
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
         }
     ],
     "env": {
