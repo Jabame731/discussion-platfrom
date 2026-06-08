@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProtocolController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
     });
+
+    // Protocols
+    Route::apiResource('protocols', ProtocolController::class)->parameters(['protocols' => 'protocol']);
+    // Override show to accept slug or id
+    Route::get('/protocols/{slug}', [ProtocolController::class, 'show'])->where('slug', '.*');
 
 
 
