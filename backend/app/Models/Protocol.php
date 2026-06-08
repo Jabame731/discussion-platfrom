@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TypesenseService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,12 +49,17 @@ class Protocol extends Model
             }
         });
 
+        // Typesense sync
+        static::created(fn (Protocol $p) => app(TypesenseService::class)->indexProtocol($p));
+        static::updated(fn (Protocol $p) => app(TypesenseService::class)->indexProtocol($p));
+        static::deleted(fn (Protocol $p) => app(TypesenseService::class)->deleteProtocol($p->id));
+
     }
 
     private static function uniqueSlug(string $title): string
     {
         $slug = Str::slug($title);
-        $count = static::where('slug', 'like', "${$slug}%")->count();
+        $count = static::where('slug', 'like', "{$slug}%")->count();
         return $count ? "{$slug}-{$count}" : $slug;
     }
 

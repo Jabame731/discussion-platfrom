@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Protocol;
+use App\Services\TypesenseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class ProtocolController extends Controller
 {
-    public function __construct() {}
+    public function __construct(private TypesenseService $typesense) {}
 
     /**
      * GET /api/protocols
@@ -24,14 +25,42 @@ class ProtocolController extends Controller
         $sort    = $request->query('sort', 'recent');
         $perPage = min((int) $request->query('per_page', 15), 50);
 
-        $query = Protocol::with('author')->where('status', 'published');
+        // Use Typesense when a search term is given
+        if ($q) {
+            $sortBy = match ($sort) {
+                'most_reviewed' => 'reviews_count:desc',
+                'top_rated'     => 'average_rating:desc',
+                'most_upvoted'  => 'upvotes_count:desc',
+                default         => 'created_at:desc',
+            };
 
-        if($q) {
-            $query->where(function ($q2) use ($q) {
-                $q2->where('title', 'like', "%${q}%")
-                   ->orWhere('content', 'like', "%${q}%");
-            });
+            $tsOptions = [
+                'sort_by'  => $sortBy,
+                'per_page' => $perPage,
+                'page'     => (int) $request->query('page', 1),
+            ];
+
+            if ($request->filled('tags')) {
+                $tags = implode(',', (array) $request->query('tags'));
+                $tsOptions['filter_by'] = "tags:=[{$tags}]";
+            }
+
+            $results = $this->typesense->searchProtocols($q, $tsOptions);
+
+            return response()->json([
+                'data'   => $results['hits'] ?? [],
+                'meta'   => [
+                    'found'    => $results['found'] ?? 0,
+                    'page'     => $results['page'] ?? 1,
+                    'per_page' => $perPage,
+                    'source'   => 'typesense',
+                ],
+            ]);
         }
+
+        // Fallback: standard DB query
+        $query = Protocol::with('author')
+            ->where('status', 'published');
 
         $query = match ($sort) {
             'most_reviewed' => $query->orderByDesc('reviews_count'),
@@ -39,17 +68,24 @@ class ProtocolController extends Controller
             'most_upvoted'  => $query->orderByDesc('upvotes_count'),
             default         => $query->latest(),
         };
-        
+
+        if ($request->filled('tags')) {
+            foreach ((array) $request->query('tags') as $tag) {
+                $query->whereJsonContains('tags', $tag);
+            }
+        }
+
         $protocols = $query->paginate($perPage);
 
         return response()->json([
             'data' => $protocols->items(),
             'meta' => [
-                'found'     => $protocols->total(),
-                'page'      => $protocols->currentPage(),
-                'per_page'  => $protocols->perPage(),
+                'found'    => $protocols->total(),
+                'page'     => $protocols->currentPage(),
+                'per_page' => $protocols->perPage(),
                 'last_page' => $protocols->lastPage(),
-            ]
+                'source'   => 'database',
+            ],
         ]);
     }
 
@@ -70,6 +106,8 @@ class ProtocolController extends Controller
 
         $protocol = Protocol::create($data);
         $protocol->load('author');
+
+        $this->typesense->indexProtocol($protocol);
 
         return response()->json($protocol, 201);
 
@@ -105,6 +143,9 @@ class ProtocolController extends Controller
         ]);
 
         $protocol->update($data);
+        $fresh = $protocol->fresh('author');
+
+        $this->typesense->indexProtocol($fresh);
 
         return response()->json($protocol->fresh('author'));
     }
@@ -113,7 +154,8 @@ class ProtocolController extends Controller
      * DELETE /api/protocols/{id}
      */
     public function destroy(Protocol $protocol): JsonResponse
-    {
+    {   
+        $this->typesense->deleteProtocol($protocol->id);
         $protocol->delete();
 
         return response()->json(['message' => 'Protocol deleted']);

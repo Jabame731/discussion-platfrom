@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TypesenseService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,7 +47,10 @@ class Thread extends Model
                 $thread->slug = static::uniqueSlug($thread->title);
             }
         });
-
+        
+        static::created(fn (Thread $t) => app(TypesenseService::class)->indexThread($t));
+        static::updated(fn (Thread $t) => app(TypesenseService::class)->indexThread($t));
+        static::deleted(fn (Thread $t) => app(TypesenseService::class)->deleteThread($t->id));
     }
 
 
