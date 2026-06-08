@@ -113,7 +113,7 @@ const CommentNode = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder={`Reply to ${comment.author?.name ?? "this comment"}...`}
-              className="textarea text-sm min-h-[80px]"
+              className="textarea text-sm min-h-20"
               autoFocus
             />
             <div className="flex gap-2">
