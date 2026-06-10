@@ -122,6 +122,7 @@ export const createReview = createAsyncThunk<
 >(
   "protocols/createReview",
   async ({ protocolId, payload }, { dispatch, extra }) => {
+    dispatch(protocolActions.addReviewStart());
     try {
       const review = await extra.protocolRepository.createReview(
         protocolId,
@@ -132,10 +133,52 @@ export const createReview = createAsyncThunk<
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to submit review";
-      dispatch(protocolActions.saveProtocolFailure(message));
+      dispatch(protocolActions.addReviewFailure(message));
     }
   },
 );
+
+export const updateReview = createAsyncThunk<
+  Review,
+  {
+    reviewId: number;
+    payload: CreateReviewPayload;
+  },
+  ThunkApi
+>(
+  "protocols/updateReview",
+  async ({ reviewId, payload }, { dispatch, extra }) => {
+    dispatch(protocolActions.editReviewStart());
+    try {
+      const review = await extra.protocolRepository.updateReview(
+        reviewId,
+        payload,
+      );
+      dispatch(protocolActions.updateReviewSuccess(review));
+      return review;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update review";
+      dispatch(protocolActions.editReviewFailure(message));
+      throw err;
+    }
+  },
+);
+
+export const deleteReview = createAsyncThunk<
+  void,
+  { reviewId: number },
+  ThunkApi
+>("protocols/deleteReview", async ({ reviewId }, { dispatch, extra }) => {
+  dispatch(protocolActions.deleteReviewStart());
+  try {
+    await extra.protocolRepository.deleteReview(reviewId);
+    dispatch(protocolActions.deleteReviewSuccess(reviewId));
+  } catch (err: unknown) {
+    dispatch(protocolActions.deleteReviewFailure());
+    throw err;
+  }
+});
 
 export const fetchProtocolThreads = createAsyncThunk<
   void,

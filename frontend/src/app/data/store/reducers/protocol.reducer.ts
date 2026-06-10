@@ -14,6 +14,16 @@ interface ProtocolState {
   // reviews
   reviews: Review[];
   reviewsLoading: boolean;
+
+  // add reviews
+  addReviewStart: boolean;
+  addReviewSucceeded: boolean;
+  addReviewFailure: string | null;
+
+  editReviewLoading: boolean;
+  editReviewError: string | null;
+  deleteReviewLoading: boolean;
+
   // protocol threads
   protocolThreads: Thread[];
   protocolThreadsLoading: boolean;
@@ -34,6 +44,14 @@ const initialState: ProtocolState = {
 
   reviews: [],
   reviewsLoading: false,
+
+  addReviewStart: false,
+  addReviewSucceeded: false,
+  addReviewFailure: null,
+
+  editReviewLoading: false,
+  editReviewError: null,
+  deleteReviewLoading: false,
 
   protocolThreads: [],
   protocolThreadsLoading: false,
@@ -120,8 +138,14 @@ const protocolSlice = createSlice({
     fetchReviewsFailure(state) {
       state.reviewsLoading = false;
     },
+    addReviewStart(state) {
+      state.addReviewStart = true;
+      state.addReviewFailure = null;
+    },
     addReviewSuccess(state, action: PayloadAction<Review>) {
       // upsert — replace if user already reviewed, else prepend
+      state.addReviewSucceeded = true;
+      state;
       const idx = state.reviews.findIndex(
         (r) => r.user_id === action.payload.user_id,
       );
@@ -130,6 +154,40 @@ const protocolSlice = createSlice({
       } else {
         state.reviews = [action.payload, ...state.reviews];
       }
+    },
+    addReviewFailure(state, action: PayloadAction<string>) {
+      state.addReviewStart = false;
+      state.addReviewSucceeded = false;
+      state.addReviewFailure = action.payload;
+    },
+    // Update review
+    editReviewStart(state) {
+      state.editReviewLoading = true;
+      state.editReviewError = null;
+    },
+    updateReviewSuccess(state, action: PayloadAction<Review>) {
+      state.editReviewLoading = false;
+      const idx = state.reviews.findIndex((r) => r.id === action.payload.id);
+      if (idx >= 0) state.reviews[idx] = action.payload;
+    },
+    editReviewFailure(state, action: PayloadAction<string>) {
+      state.editReviewLoading = false;
+      state.editReviewError = action.payload;
+    },
+
+    // Delete review
+    deleteReviewStart(state) {
+      state.deleteReviewLoading = true;
+    },
+    deleteReviewSuccess(state, action: PayloadAction<number>) {
+      state.deleteReviewLoading = false;
+      state.addReviewSucceeded = false;
+      state.addReviewStart = false;
+      state.addReviewFailure = null;
+      state.reviews = state.reviews.filter((r) => r.id !== action.payload);
+    },
+    deleteReviewFailure(state) {
+      state.deleteReviewLoading = false;
     },
 
     // Protocol threads

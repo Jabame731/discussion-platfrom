@@ -27,5 +27,5 @@ export interface UpdateProtocolPayload extends Omit<
 
 export interface CreateReviewPayload {
   rating: number;
-  feedback?: string;
+  feedback: string;
 }

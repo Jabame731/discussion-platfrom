@@ -22,3 +22,18 @@ export const selectProtocolThreadsLoading = (s: RootState) =>
 
 export const selectProtocolSaving = (s: RootState) => s.protocols.saving;
 export const selectProtocolSaveError = (s: RootState) => s.protocols.saveError;
+
+//adding a review
+export const isReviewAddLoading = (s: RootState) => s.protocols.addReviewStart;
+export const isReviewSucceeded = (s: RootState) =>
+  s.protocols.addReviewSucceeded;
+export const isReviewFailed = (s: RootState) => s.protocols.addReviewFailure;
+
+//editing a review
+export const editReviewLoading = (s: RootState) =>
+  s.protocols.editReviewLoading;
+export const editReviewError = (s: RootState) => s.protocols.editReviewError;
+
+//deleting a review
+export const deleteReviewLoading = (s: RootState) =>
+  s.protocols.deleteReviewLoading;

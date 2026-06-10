@@ -9,7 +9,7 @@ export interface SearchBarProps {
 
 export interface SortBarProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (s: ProtocolSort) => void;
   options?: SortOption[];
 }
 

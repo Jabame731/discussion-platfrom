@@ -21,6 +21,7 @@ import {
 } from "../data/models";
 import { useDebounce } from "../hooks";
 import { FetchProtocolsUsecase } from "../usecases";
+import { toast } from "react-toastify";
 
 const SORT_OPTIONS: SortOption[] = [
   { label: "Recent", value: "recent" },

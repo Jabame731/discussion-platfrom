@@ -24,3 +24,11 @@ export const DEPTH_COLORS: Record<number, string> = {
 export function isHit<T>(item: unknown): item is TypesenseHit<T> {
   return typeof item === "object" && item !== null && "document" in item;
 }
+
+export function toSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+}

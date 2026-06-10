@@ -2,15 +2,24 @@ import clsx from "clsx";
 import { useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import Avatar from "../ui/avatar";
+import {
+  selectCurrentUser,
+  selectIsLoggedIn,
+  useAppDispatch,
+  useAppSelector,
+} from "../../data/store";
+import { AuthUsecase } from "../../usecases/auth.usecase";
 
 const Navbar = () => {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const user = useAppSelector(selectCurrentUser);
+  const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
 
-  const user = {
-    name: "Amy Cons",
-  };
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
     { to: "/", label: "Protocols" },
@@ -18,16 +27,18 @@ const Navbar = () => {
     { to: "/search", label: "Search" },
   ];
 
+  const handleLogout = () => {
+    new AuthUsecase(dispatch).logout();
+    navigate("/");
+    setMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-[#2a2820] bg-green-900 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div
-              className="w-7 h-7 rounded-lg bg-sage-700 flex items-center justify-center
-                            group-hover:bg-sage-600 transition-colors"
-            >
+            <div className="w-7 h-7 rounded-lg bg-sage-700 flex items-center justify-center group-hover:bg-sage-600 transition-colors">
               <img src="meditation.png" />
             </div>
             <span className="text-lg text-stone-100 tracking-tight">
@@ -35,7 +46,6 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((l) => (
               <Link
@@ -53,13 +63,9 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* Right side */}
           <div className="flex items-center gap-2">
-            {user ? (
-              <div
-                className="relative"
-                //   ref={menuRef}
-              >
+            {isLoggedIn && user ? (
+              <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
                   className="flex items-center gap-2 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-colors"
@@ -85,7 +91,7 @@ const Navbar = () => {
                 {menuOpen && (
                   <div className="absolute right-0 mt-1.5 w-44 card shadow-2xl py-1 animate-fade-up">
                     <button
-                      //   onClick={handleLogout}
+                      onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-stone-400 hover:text-stone-200 hover:bg-white/5 transition-colors"
                     >
                       Sign out
@@ -98,10 +104,15 @@ const Navbar = () => {
                 <Link to="/login" className="btn-ghost text-sm">
                   Sign in
                 </Link>
+                <Link
+                  to="/register"
+                  className="btn-primary text-sm py-1.5 px-4"
+                >
+                  Sign up
+                </Link>
               </div>
             )}
 
-            {/* Mobile menu toggle */}
             <button
               className="md:hidden btn-ghost p-1.5"
               onClick={() => setMobileOpen((v) => !v)}
@@ -127,7 +138,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile nav */}
         {mobileOpen && (
           <div className="md:hidden py-3 border-t border-[#2a2820] animate-fade-up">
             {navLinks.map((l) => (

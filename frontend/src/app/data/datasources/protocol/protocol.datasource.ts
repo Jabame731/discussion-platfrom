@@ -94,6 +94,26 @@ export class ProtocolDatasource implements ProtocolDatasourceInterface {
     }
   }
 
+  async updateReview(
+    reviewId: number,
+    payload: CreateReviewPayload,
+  ): Promise<Review> {
+    try {
+      const res = await api.put<Review>(`/reviews/${reviewId}`, payload);
+      return res.data;
+    } catch (err) {
+      throw toDomainError(err);
+    }
+  }
+
+  async deleteReview(reviewId: number): Promise<void> {
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+    } catch (err) {
+      throw toDomainError(err);
+    }
+  }
+
   async getThreads(
     protocolId: number | string,
   ): Promise<PaginatedResponse<Thread>> {

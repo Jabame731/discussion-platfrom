@@ -24,5 +24,7 @@ export interface IProtocolRepository {
     protocolId: number | string,
     payload: CreateReviewPayload,
   ): Promise<Review>;
+  updateReview(reviewId: number, payload: CreateReviewPayload): Promise<Review>;
+  deleteReview(reviewId: number): Promise<void>;
   getThreads(protocolId: number | string): Promise<PaginatedResponse<Thread>>;
 }

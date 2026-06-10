@@ -3,8 +3,10 @@ import Typsense from "typesense";
 import type { ProtocolListParams } from "./protocol.model";
 import type {
   AuthResponse,
+  LoginPayload,
   PaginatedResponse,
   Protocol,
+  RegisterPayload,
   Review,
   SearchOptions,
   Thread,
@@ -17,7 +19,6 @@ import type {
 import type { ReviewCreateData } from "./review.model";
 import type { ThreadCreateData, ThreadListParams } from "./thread.model";
 import type { CommentCreateData } from "./comment.model";
-import type { LoginData, RegisterData } from "./auth.model";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const TYPESENSE_HOST = import.meta.env.VITE_TYPESENSE_HOST;
@@ -95,8 +96,8 @@ export const commentsApi = {
 };
 
 export const authApi = {
-  login: (data: LoginData) => api.post<AuthResponse>("/auth/login", data),
-  register: (data: RegisterData) =>
+  login: (data: LoginPayload) => api.post<AuthResponse>("/auth/login", data),
+  register: (data: RegisterPayload) =>
     api.post<AuthResponse>("/auth/register", data),
   logout: () => api.post("/auth/logout"),
   me: () => api.get<User>("/auth/me"),

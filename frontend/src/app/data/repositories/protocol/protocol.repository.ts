@@ -50,6 +50,17 @@ export class ProtocolRepository implements IProtocolRepository {
     return this.datasource.createReview(protocolId, payload);
   }
 
+  updateReview(
+    reviewId: number,
+    payload: CreateReviewPayload,
+  ): Promise<Review> {
+    return this.datasource.updateReview(reviewId, payload);
+  }
+
+  deleteReview(reviewId: number): Promise<void> {
+    return this.datasource.deleteReview(reviewId);
+  }
+
   getThreads(protocolId: number | string): Promise<PaginatedResponse<Thread>> {
     return this.datasource.getThreads(protocolId);
   }

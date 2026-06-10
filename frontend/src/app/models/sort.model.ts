@@ -6,6 +6,6 @@ export type ProtocolSort =
 export type ThreadSort = "recent" | "most_upvoted" | "most_comments";
 
 export interface SortOption {
-  value: string;
+  value: ProtocolSort;
   label: string;
 }

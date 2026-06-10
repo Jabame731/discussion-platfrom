@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { ProtocolCardProps } from "../../models";
-import { isHit } from "../../utils/helpers";
+import { isHit, toSlug } from "../../utils/helpers";
 import clsx from "clsx";
 import Avatar from "../ui/avatar";
 import Stars from "../ui/stars";
@@ -11,7 +11,9 @@ const ProtocolCard = ({ protocol, index = 0 }: ProtocolCardProps) => {
   const authorName = isHit(protocol)
     ? protocol.document.author_name
     : (protocol.author?.name ?? "Unknown");
-  const slug = isHit(protocol) ? protocol.document.id : protocol.slug;
+  const slug = isHit(protocol)
+    ? toSlug(protocol.document.title)
+    : protocol.slug;
   const tags = doc.tags ?? [];
   const rating = parseFloat(String(doc.average_rating ?? 0));
   const content = isHit(protocol)
