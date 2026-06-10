@@ -1,18 +1,23 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "./assets/vite.svg";
-import heroImg from "./assets/hero.png";
+import { Route, Routes } from "react-router";
 import "./App.css";
 import Navbar from "./app/components/layout/navbar";
-import SearchBar from "./app/components/search/search-bar";
+import { useToast } from "./app/hooks";
+import ToastContainer from "./app/components/ui/toast-container";
+import HomePage from "./app/containers/home-page";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const { toasts } = useToast();
 
   return (
-    <>
+    <div className="min-h-screen bg-[#0f0e0c]">
       <Navbar />
-    </>
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+        </Routes>
+      </main>
+      <ToastContainer toasts={toasts} />
+    </div>
   );
 }
 

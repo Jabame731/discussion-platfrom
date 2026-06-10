@@ -30,7 +30,7 @@ const Navbar = () => {
             >
               <img src="meditation.png" />
             </div>
-            <span className="font-serif text-lg text-stone-100 tracking-tight">
+            <span className="text-lg text-stone-100 tracking-tight">
               Wellness Hub
             </span>
           </Link>

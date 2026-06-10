@@ -1,0 +1,153 @@
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { PaginatedMeta, Protocol, Review, Thread } from "../../models";
+
+interface ProtocolState {
+  // list
+  items: Protocol[];
+  meta: Partial<PaginatedMeta>;
+  listLoading: boolean;
+  listError: string | null;
+  // detail
+  current: Protocol | null;
+  detailLoading: boolean;
+  detailError: string | null;
+  // reviews
+  reviews: Review[];
+  reviewsLoading: boolean;
+  // protocol threads
+  protocolThreads: Thread[];
+  protocolThreadsLoading: boolean;
+  // mutation
+  saving: boolean;
+  saveError: string | null;
+}
+
+const initialState: ProtocolState = {
+  items: [],
+  meta: {},
+  listLoading: false,
+  listError: null,
+
+  current: null,
+  detailLoading: false,
+  detailError: null,
+
+  reviews: [],
+  reviewsLoading: false,
+
+  protocolThreads: [],
+  protocolThreadsLoading: false,
+
+  saving: false,
+  saveError: null,
+};
+
+const protocolSlice = createSlice({
+  name: "protocols",
+  initialState,
+  reducers: {
+    // List
+    fetchProtocolsStart(state) {
+      state.listLoading = true;
+      state.listError = null;
+    },
+    fetchProtocolsSuccess(
+      state,
+      action: PayloadAction<{
+        items: Protocol[];
+        meta: Partial<PaginatedMeta>;
+      }>,
+    ) {
+      state.items = action.payload.items;
+      state.meta = action.payload.meta;
+      state.listLoading = false;
+    },
+    fetchProtocolsFailure(state, action: PayloadAction<string>) {
+      state.listLoading = false;
+      state.listError = action.payload;
+    },
+
+    // Detail
+    fetchProtocolStart(state) {
+      state.detailLoading = true;
+      state.detailError = null;
+      state.current = null;
+    },
+    fetchProtocolSuccess(state, action: PayloadAction<Protocol>) {
+      state.current = action.payload;
+      state.detailLoading = false;
+    },
+    fetchProtocolFailure(state, action: PayloadAction<string>) {
+      state.detailLoading = false;
+      state.detailError = action.payload;
+    },
+
+    // Create
+    saveProtocolStart(state) {
+      state.saving = true;
+      state.saveError = null;
+    },
+    createProtocolSuccess(state, action: PayloadAction<Protocol>) {
+      state.items = [action.payload, ...state.items];
+      state.saving = false;
+      state.current = action.payload;
+    },
+    updateProtocolSuccess(state, action: PayloadAction<Protocol>) {
+      state.saving = false;
+      state.current = action.payload;
+      state.items = state.items.map((p) =>
+        p.id === action.payload.id ? action.payload : p,
+      );
+    },
+    deleteProtocolSuccess(state, action: PayloadAction<number>) {
+      state.saving = false;
+      state.items = state.items.filter((p) => p.id !== action.payload);
+      if (state.current?.id === action.payload) state.current = null;
+    },
+    saveProtocolFailure(state, action: PayloadAction<string>) {
+      state.saving = false;
+      state.saveError = action.payload;
+    },
+
+    // Reviews
+    fetchReviewsStart(state) {
+      state.reviewsLoading = true;
+    },
+    fetchReviewsSuccess(state, action: PayloadAction<Review[]>) {
+      state.reviews = action.payload;
+      state.reviewsLoading = false;
+    },
+    fetchReviewsFailure(state) {
+      state.reviewsLoading = false;
+    },
+    addReviewSuccess(state, action: PayloadAction<Review>) {
+      // upsert — replace if user already reviewed, else prepend
+      const idx = state.reviews.findIndex(
+        (r) => r.user_id === action.payload.user_id,
+      );
+      if (idx >= 0) {
+        state.reviews[idx] = action.payload;
+      } else {
+        state.reviews = [action.payload, ...state.reviews];
+      }
+    },
+
+    // Protocol threads
+    fetchProtocolThreadsStart(state) {
+      state.protocolThreadsLoading = true;
+    },
+    fetchProtocolThreadsSuccess(state, action: PayloadAction<Thread[]>) {
+      state.protocolThreads = action.payload;
+      state.protocolThreadsLoading = false;
+    },
+    fetchProtocolThreadsFailure(state) {
+      state.protocolThreadsLoading = false;
+    },
+    prependProtocolThread(state, action: PayloadAction<Thread>) {
+      state.protocolThreads = [action.payload, ...state.protocolThreads];
+    },
+  },
+});
+
+export const protocolActions = protocolSlice.actions;
+export default protocolSlice.reducer;

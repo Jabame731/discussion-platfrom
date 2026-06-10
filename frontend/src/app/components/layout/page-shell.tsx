@@ -6,7 +6,7 @@ const PageShell = ({
   className,
 }: {
   children: ReactNode;
-  className: string;
+  className?: string;
 }) => {
   return (
     <div className={clsx("max-w-6xl mx-auto px-4 sm:px-6 py-8", className)}>

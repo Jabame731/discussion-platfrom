@@ -1,4 +1,4 @@
-import type { SortOption } from "./sort.model";
+import type { ProtocolSort, SortOption } from "./sort.model";
 
 export interface SearchBarProps {
   value: string;
@@ -16,8 +16,8 @@ export interface SortBarProps {
 export interface FilterHeaderProps {
   query: string;
   onQueryChange: (q: string) => void;
-  sort: string;
-  onSortChange: (s: string) => void;
+  sort: ProtocolSort;
+  onSortChange: (s: ProtocolSort) => void;
   loading?: boolean;
   resultCount?: number;
   sortOptions?: SortOption[];

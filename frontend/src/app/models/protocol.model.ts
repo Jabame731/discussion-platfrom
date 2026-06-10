@@ -35,6 +35,6 @@ export interface ProtocolCardProps {
 
 export interface ProtocolListProps {
   protocols: ProtocolItem[];
-  loading: boolean;
+  loading?: boolean;
   error?: string | null;
 }

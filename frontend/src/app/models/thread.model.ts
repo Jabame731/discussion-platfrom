@@ -1,3 +1,4 @@
+import type { ProtocolComment } from "../data/models";
 import type { Protocol } from "./protocol.model";
 import type { TypesenseHit, TypesenseThreadDocument } from "./typesense.model";
 import type { User } from "./user.model";
@@ -21,7 +22,7 @@ export interface Thread {
   updated_at: string;
   author?: User;
   protocol?: Protocol;
-  root_comments?: Comment[];
+  root_comments?: ProtocolComment[];
 }
 
 export interface ThreadCardProps {

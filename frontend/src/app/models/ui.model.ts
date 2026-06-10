@@ -22,14 +22,21 @@ export interface SpinnerProps {
   className?: string;
 }
 
+export type ToastType = "success" | "error" | "info";
+
 export interface Toast {
-  id: string;
+  id: number;
   message: string;
   type: string;
 }
 
 export interface ToastContainerProps {
   toasts: Toast[];
+}
+
+export interface UseToastReturn {
+  toasts: Toast[];
+  toast: (message: string, type?: ToastType) => void;
 }
 
 export interface ModalProps {
@@ -54,8 +61,8 @@ export interface AvatarProps {
 }
 
 export interface EmptyStateProps {
-  icon: string;
+  icon: string | ReactNode;
   title: string;
   description: string;
-  action: string;
+  action?: string | ReactNode;
 }
