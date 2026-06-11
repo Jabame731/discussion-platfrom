@@ -63,4 +63,22 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * POST /api/auth/logout
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()?->currentAccessToken()?->delete();
+
+        return response()->json(['message' => 'Logged out.']);
+    }
+
+    /**
+     * GET /api/auth/me
+     */
+    public function me(Request $request): JsonResponse
+    {
+        return response()->json($request->user());
+    }
+
 }

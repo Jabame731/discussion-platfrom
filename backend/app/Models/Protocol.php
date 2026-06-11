@@ -21,6 +21,7 @@ class Protocol extends Model
         'slug',
         'content',
         'tags',
+        'status',
         'views_count',
         'reviews_count',
         'average_rating',
@@ -33,6 +34,11 @@ class Protocol extends Model
         'average_rating' => 'float'
     ];
 
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
     
     // SLUG AUTO-GENERATION
     protected static function booted(): void 

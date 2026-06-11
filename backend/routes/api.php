@@ -40,7 +40,7 @@ Route::prefix('v1')->group(function () {
 
     // Protocols
     Route::apiResource('protocols', ProtocolController::class)->parameters(['protocols' => 'protocol']);
-    Route::get('/protocols/{slug}', [ProtocolController::class, 'show'])->where('slug', '.*');
+    // Route::get('/protocols/{slug}', [ProtocolController::class, 'show'])->where('slug', '.*');
 
     // Threads (standalone + nested under protocol)
     Route::apiResource('threads', ThreadController::class)->parameters(['threads' => 'thread']);

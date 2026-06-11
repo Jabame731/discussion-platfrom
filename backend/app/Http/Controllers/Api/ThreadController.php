@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Protocol;
 use App\Models\Thread;
+use App\Models\Protocol;
 use App\Services\TypesenseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class  ThreadController extends Controller
+class ThreadController extends Controller
 {
     public function __construct(private TypesenseService $typesense) {}
 
@@ -81,6 +82,27 @@ class  ThreadController extends Controller
     }
 
     /**
+     * POST /api/threads
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'title'       => 'required|string|max:255|unique:threads,title',
+            'body'        => 'required|string',
+            'protocol_id' => 'nullable|exists:protocols,id',
+            'tags'        => 'nullable|array',
+            'tags.*'      => 'string|max:50',
+        ]);
+
+        $data['user_id'] = Auth::id() ?? 1;
+
+        $thread = Thread::create($data);
+        $thread->load(['author', 'protocol']);
+
+        return response()->json($thread, 201);
+    }
+
+    /**
      * GET /api/threads/{idOrSlug}
      */
     public function show(string $idOrSlug): JsonResponse
@@ -122,5 +144,4 @@ class  ThreadController extends Controller
 
         return response()->json(['message' => 'Thread deleted.']);
     }
-
 }

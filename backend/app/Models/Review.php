@@ -22,6 +22,10 @@ class Review extends Model
         'rating' => 'integer'
     ];
 
+    // public function getRouteKeyName(): string
+    // {
+    //     return 'slug';
+    // }
 
     protected static function booted(): void
     {

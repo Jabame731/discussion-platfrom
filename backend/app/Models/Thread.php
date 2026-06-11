@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 
 class Thread extends Model
 {
-    /** @use HasFactory<\Database\Factories\ThreadFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -30,11 +29,10 @@ class Thread extends Model
     ];
 
     protected $casts = [
-        'tags' => 'array'
+        'tags' => 'array',
     ];
 
-
-    protected static function booted()
+    protected static function booted(): void
     {
         static::creating(function (Thread $thread) {
             if (empty($thread->slug)) {
@@ -47,12 +45,11 @@ class Thread extends Model
                 $thread->slug = static::uniqueSlug($thread->title);
             }
         });
-        
+
         static::created(fn (Thread $t) => app(TypesenseService::class)->indexThread($t));
         static::updated(fn (Thread $t) => app(TypesenseService::class)->indexThread($t));
         static::deleted(fn (Thread $t) => app(TypesenseService::class)->deleteThread($t->id));
     }
-
 
     private static function uniqueSlug(string $title): string
     {
@@ -101,7 +98,6 @@ class Thread extends Model
         $this->saveQuietly();
     }
 
-
     // Scopes
     public function scopeSearch($query, string $term)
     {
@@ -110,5 +106,12 @@ class Thread extends Model
               ->orWhere('body', 'like', "%{$term}%");
         });
     }
+
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
 
 }
