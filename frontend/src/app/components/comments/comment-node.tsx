@@ -3,6 +3,7 @@ import type { CommentNodeProps } from "../../models";
 import clsx from "clsx";
 import Avatar from "../ui/avatar";
 import { DEPTH_COLORS, MAX_DEPTH } from "../../utils/helpers";
+import VoteButtons from "../ui/vote-buttons";
 
 const CommentNode = ({
   comment,
@@ -15,11 +16,11 @@ const CommentNode = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  //   const { upvotes, downvotes, userVote, vote } = useVote(
-  //     comment.upvotes_count,
-  //     comment.downvotes_count,
-  //     (type) => commentsApi.vote(comment.id, type),
-  //   );
+  // const { upvotes, downvotes, userVote, vote } = useVote(
+  //   comment.upvotes_count,
+  //   comment.downvotes_count,
+  //   (type) => commentsApi.vote(comment.id, type),
+  // );
 
   const replies = comment.replies ?? [];
   const depthColor = DEPTH_COLORS[Math.min(depth, 4)] ?? DEPTH_COLORS[4];

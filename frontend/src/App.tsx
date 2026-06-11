@@ -7,6 +7,8 @@ import NewProtocolPage from "./app/containers/new-protocol-page";
 import ProtocolDetailPage from "./app/containers/protocol-detail-page";
 import LoginPage from "./app/containers/login-page";
 import EditProtocolPage from "./app/containers/edit-protocol-page";
+import ThreadsPage from "./app/containers/thread-page";
+import ThreadDetailPage from "./app/containers/thread-detail-page";
 
 function App() {
   return (
@@ -19,6 +21,12 @@ function App() {
           <Route path="/protocols/:slug" element={<ProtocolDetailPage />} />
           <Route path="/protocols/:slug/edit" element={<EditProtocolPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/threads" element={<ThreadsPage />} />
+          <Route path="/threads/:id" element={<ThreadDetailPage />} />
+          {/* <Route path="/threads/new" element={<NewThreadPage />} />
+      
+  
+          {/* <Route path="/register" element={<RegisterPage />} /> */}
         </Routes>
       </main>
       <ToastContainer />

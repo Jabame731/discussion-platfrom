@@ -13,6 +13,8 @@ export class CommentDatasource implements ICommentDatasource {
       const { data } = await api.get<{ data: Comment[] }>(
         `/threads/${threadId}/comments`,
       );
+      console.log(data);
+
       return data.data ?? [];
     } catch (err) {
       throw toDomainError(err);

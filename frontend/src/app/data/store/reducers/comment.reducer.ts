@@ -77,6 +77,8 @@ const commentSlice = createSlice({
       state,
       action: PayloadAction<{ threadId: string; comments: Comment[] }>,
     ) {
+      console.log(action);
+
       const { threadId, comments } = action.payload;
       state.byThread[threadId] = comments;
       state.loading[threadId] = false;
