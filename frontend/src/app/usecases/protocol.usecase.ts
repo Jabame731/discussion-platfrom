@@ -1,5 +1,10 @@
-import type { CreateReviewPayload, ProtocolListParams } from "../data/models";
+import type {
+  CreateProtocolPayload,
+  CreateReviewPayload,
+  ProtocolListParams,
+} from "../data/models";
 import {
+  createProtocol,
   createReview,
   deleteReview,
   fetchProtocol,
@@ -17,10 +22,12 @@ export class ProtocolsUsecase {
     this.dispatch(fetchProtocols(params));
   }
 
-  loadAll(slug: string | number): void {
+  createNewProtocol(data: CreateProtocolPayload) {
+    this.dispatch(createProtocol(data));
+  }
+
+  loadProtocol(slug: string | number): void {
     this.dispatch(fetchProtocol(slug));
-    this.dispatch(fetchProtocolReviews(slug));
-    this.dispatch(fetchProtocolThreads(slug));
   }
 
   createReview(protocolId: string | number, payload: CreateReviewPayload) {

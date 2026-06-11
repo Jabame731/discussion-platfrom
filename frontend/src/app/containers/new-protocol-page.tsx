@@ -9,6 +9,11 @@ import {
 } from "../data/store";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Tag from "../components/ui/tag";
+import Spinner from "../components/ui/spinner";
+import { ProtocolsUsecase } from "../usecases";
+import { createProtocol } from "../data/store/effects/protocol.effects";
+import { toast } from "react-toastify";
+import { stringToArray } from "../utils/helpers";
 
 interface ProtocolForm {
   title: string;
@@ -33,23 +38,31 @@ const NewProtocolPage = () => {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const set =
-    (k: keyof ProtocolForm) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-  const tagArr = form.tags
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
+  const tagArr = stringToArray(form.tags);
 
-  // Navigate away once the protocol is created in the store
+  // Navigate after successful creation
+  useEffect(() => {
+    if (submitted && !saving && created && !saveError) {
+      navigate(`/protocols/${created.slug}`);
+    }
+  }, [submitted, saving, created, saveError, navigate]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(form);
-
     setSubmitted(true);
+    const uniqueTags = [...new Set(tagArr)];
+    new ProtocolsUsecase(dispatch).createNewProtocol({
+      title: form.title,
+      content: form.content,
+      tags: uniqueTags,
+      status: form.status,
+    });
   };
 
   const statusOptions: {
@@ -60,6 +73,7 @@ const NewProtocolPage = () => {
     { value: "published", label: "Published", desc: "Visible to everyone" },
     { value: "draft", label: "Draft", desc: "Only visible to you" },
   ];
+
   return (
     <PageShell className="max-w-3xl">
       <div className="flex items-center gap-2 text-sm text-stone-600 mb-6">
@@ -77,7 +91,7 @@ const NewProtocolPage = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {saveError && (
+          {saveError && submitted && (
             <p className="text-sm text-red-400 bg-red-950/30 border border-red-900/40 rounded-lg px-4 py-3">
               {saveError}
             </p>
@@ -89,8 +103,9 @@ const NewProtocolPage = () => {
             </label>
             <input
               type="text"
+              name="title"
               value={form.title}
-              onChange={set("title")}
+              onChange={handleFieldChange}
               placeholder="e.g. 30-Day Cold Exposure Protocol"
               className="input text-lg"
               required
@@ -105,10 +120,11 @@ const NewProtocolPage = () => {
               Use ## for headings, - for bullet points.
             </p>
             <textarea
+              name="content"
               value={form.content}
-              onChange={set("content")}
+              onChange={handleFieldChange}
               placeholder={`## Overview\n\nDescribe the protocol...\n\n## Phase 1\n\n...`}
-              className="textarea min-h-[320px] font-mono text-sm"
+              className="textarea min-h-80 font-mono text-sm"
               required
             />
           </div>
@@ -119,15 +135,16 @@ const NewProtocolPage = () => {
             </label>
             <input
               type="text"
+              name="tags"
               value={form.tags}
-              onChange={set("tags")}
+              onChange={handleFieldChange}
               placeholder="sleep, cold-therapy, breathwork, nutrition"
               className="input"
             />
             {tagArr.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
-                {tagArr.map((t) => (
-                  <Tag key={t}>{t}</Tag>
+                {tagArr.map((t, idx) => (
+                  <Tag key={`${t}-${idx}`}>{t}</Tag>
                 ))}
               </div>
             )}
@@ -152,9 +169,7 @@ const NewProtocolPage = () => {
                     name="status"
                     value={opt.value}
                     checked={form.status === opt.value}
-                    onChange={() =>
-                      setForm((f) => ({ ...f, status: opt.value }))
-                    }
+                    onChange={handleFieldChange}
                     className="sr-only"
                   />
                   <p className="text-sm font-medium text-stone-300">
@@ -172,7 +187,7 @@ const NewProtocolPage = () => {
               disabled={saving}
               className="btn-primary flex items-center gap-2"
             >
-              {/* {saving && <Spinner size="sm" />} */}
+              {saving && <Spinner size="sm" />}
               {saving ? "Publishing..." : "Publish Protocol"}
             </button>
             <Link to="/" className="btn-ghost">

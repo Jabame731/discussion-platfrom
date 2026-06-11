@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import PageShell from "../components/layout/page-shell";
 import TwoColumnLayout from "../components/layout/two-column-layout";
 import NewThreadForm from "../components/threads/new-thread-form";
@@ -7,16 +7,19 @@ import EmptyState from "../components/ui/empty-state";
 import ReviewItem from "../components/ui/review-item";
 import ReviewForm from "../components/protocols/review-form";
 import ProtocolStats from "../components/protocols/protocol-stats";
+import { FaRegEdit } from "react-icons/fa";
 import {
-  createThread,
   deleteReviewLoading,
   editReviewError,
   editReviewLoading,
+  getProtocolReviews,
+  getProtocolThreads,
   isReviewAddLoading,
   isReviewFailed,
   isReviewSucceeded,
   selectCurrentProtocol,
   selectCurrentUser,
+  selectProtocolBySlug,
   selectProtocolError,
   selectProtocolLoading,
   selectProtocolReviews,
@@ -40,7 +43,7 @@ import { toast } from "react-toastify";
 import type { Review } from "../models";
 import Modal from "../components/ui/modal";
 import { ProtocolsUsecase, ThreadsUsecase } from "../usecases";
-import { arrayToString, stringToArray } from "../utils/helpers";
+import { stringToArray } from "../utils/helpers";
 
 type TabId = "threads" | "reviews";
 
@@ -96,45 +99,35 @@ const ProtocolDetailPage = () => {
   const protocol = useAppSelector(selectCurrentProtocol);
   const loading = useAppSelector(selectProtocolLoading);
   const error = useAppSelector(selectProtocolError);
-  const reviews = useAppSelector(selectProtocolReviews);
+  const reviews = useAppSelector(getProtocolReviews);
   const reviewsLoading = useAppSelector(selectProtocolReviewsLoading);
-  const threads = useAppSelector(selectProtocolThreads);
+  const threads = useAppSelector(getProtocolThreads);
   const threadsLoading = useAppSelector(selectProtocolThreadsLoading);
 
-  // add a review selectors
   const reviewLoading = useAppSelector(isReviewAddLoading);
   const reviewFailure = useAppSelector(isReviewFailed);
   const reviewSucceeded = useAppSelector(isReviewSucceeded);
-
-  // add a edit review selectors
   const reviewEditLoading = useAppSelector(editReviewLoading);
   const reviewEditError = useAppSelector(editReviewError);
-
-  // add a thread
   const threadAddLoading = useAppSelector(selectThreadSaving);
   const threadAddError = useAppSelector(selectThreadSaveError);
-
-  // delete a review selectors
   const reviewDeleteLoading = useAppSelector(deleteReviewLoading);
 
-  //user
   const user = useAppSelector(selectCurrentUser);
 
   const [activeTab, setActiveTab] = useState<TabId>("threads");
   const [showThread, setShowThread] = useState(false);
-
-  //modal
   const [selectedReview, setSelectedReview] = useState<Partial<Review> | null>(
     null,
   );
   const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [isSubmittingThread, setIsSubmittingThread] = useState(false);
 
-  const userHasReview = reviews.some(
+  const userHasReview = reviews?.some(
     (r) => r.author?.username === user?.username,
   );
+  const isOwner = user?.username === protocol?.author?.username;
 
   const handleEdit = (review: Review) => {
     setSelectedReview(review);
@@ -152,8 +145,7 @@ const ProtocolDetailPage = () => {
     slug: string;
   }) => {
     setIsSubmittingReview(true);
-    const usecase = new ProtocolsUsecase(dispatch);
-    usecase.updateReview(selectedReview?.id as number, {
+    new ProtocolsUsecase(dispatch).updateReview(selectedReview?.id as number, {
       feedback: data.feedback,
       rating: data.rating,
     });
@@ -161,8 +153,7 @@ const ProtocolDetailPage = () => {
 
   const handleDeleteReview = () => {
     setIsSubmittingDelete(true);
-    const usecase = new ProtocolsUsecase(dispatch);
-    usecase.deleteReview(selectedReview?.id as number);
+    new ProtocolsUsecase(dispatch).deleteReview(selectedReview?.id as number);
   };
 
   const closeModal = () => {
@@ -185,8 +176,7 @@ const ProtocolDetailPage = () => {
     feedback: string;
     slug: string;
   }) => {
-    const usecase = new ProtocolsUsecase(dispatch);
-    usecase.createReview(data.slug, {
+    new ProtocolsUsecase(dispatch).createReview(data.slug, {
       feedback: data.feedback,
       rating: data.rating,
     });
@@ -197,17 +187,14 @@ const ProtocolDetailPage = () => {
     tags: string;
     body: string;
   }) => {
-    const { title, tags, body } = data;
-    const tagsArr = stringToArray(tags);
+    const tagsArr = stringToArray(data.tags);
     const usecase = new ThreadsUsecase(dispatch);
-
     await usecase.createThread({
-      body,
-      title,
+      body: data.body,
+      title: data.title,
       tags: tagsArr,
       protocol_id: protocol?.id,
     });
-
     if (!threadAddError) {
       setShowThread(false);
       dispatch(threadActions.resetThreadError());
@@ -217,14 +204,12 @@ const ProtocolDetailPage = () => {
   useEffect(() => {
     if (!slug) return;
     const usecase = new ProtocolsUsecase(dispatch);
-    usecase.loadAll(slug);
+    usecase.loadProtocol(slug);
   }, [slug, dispatch]);
 
   useEffect(() => {
     if (isSubmittingReview && !reviewEditLoading) {
-      toast.success("Review updated successfully", {
-        position: "bottom-right",
-      });
+      toast.success("Review updated", { position: "bottom-right" });
       closeModal();
       setIsSubmittingReview(false);
     }
@@ -232,9 +217,7 @@ const ProtocolDetailPage = () => {
 
   useEffect(() => {
     if (isSubmittingDelete && !reviewDeleteLoading) {
-      toast.success("Review deleted successfully", {
-        position: "bottom-right",
-      });
+      toast.success("Review deleted", { position: "bottom-right" });
       closeModal();
       setIsSubmittingDelete(false);
     }
@@ -248,6 +231,7 @@ const ProtocolDetailPage = () => {
         </div>
       </PageShell>
     );
+
   if (error || !protocol)
     return (
       <PageShell>
@@ -262,19 +246,34 @@ const ProtocolDetailPage = () => {
 
   const tags: string[] = protocol.tags ?? [];
   const tabs: { id: TabId; label: string }[] = [
-    { id: "threads", label: `Threads (${threads.length})` },
-    { id: "reviews", label: `Reviews (${reviews.length})` },
+    { id: "threads", label: `Threads (${threads?.length})` },
+    { id: "reviews", label: `Reviews (${reviews?.length})` },
   ];
 
   return (
     <>
       <PageShell>
-        <div className="flex items-center gap-2 text-sm text-stone-600 mb-6 animate-fade-in">
-          <Link to="/" className="hover:text-stone-400 transition-colors">
-            Protocols
-          </Link>
-          <span>/</span>
-          <span className="text-stone-400 truncate">{protocol.title}</span>
+        <div className="flex items-center justify-between gap-2 mb-6 animate-fade-in flex-wrap">
+          <div className="flex items-center gap-2 text-sm text-stone-600">
+            <Link to="/" className="hover:text-stone-400 transition-colors">
+              Protocols
+            </Link>
+            <span>/</span>
+            <span className="text-stone-400 truncate max-w-64">
+              {protocol.title}
+            </span>
+          </div>
+          {isOwner && (
+            <Link
+              to={`/protocols/${protocol.slug}/edit`}
+              className="text-sm text-stone-400 hover:text-stone-200 border border-[#2a2820] hover:border-[#3a3830] px-3 py-1.5 rounded-lg transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <FaRegEdit />
+                Edit Protocol
+              </span>
+            </Link>
+          )}
         </div>
 
         <TwoColumnLayout
@@ -332,12 +331,24 @@ const ProtocolDetailPage = () => {
                 {activeTab === "threads" && (
                   <div className="space-y-4">
                     {!showThread ? (
-                      <button
-                        onClick={handleOpenThread}
-                        className="btn-primary w-full sm:w-auto"
-                      >
-                        + Start Discussion
-                      </button>
+                      user ? (
+                        <button
+                          onClick={handleOpenThread}
+                          className="btn-primary w-full sm:w-auto"
+                        >
+                          + Start Discussion
+                        </button>
+                      ) : (
+                        <p className="text-sm text-stone-500">
+                          <Link
+                            to="/login"
+                            className="text-sage-400 hover:text-sage-300"
+                          >
+                            Sign in
+                          </Link>{" "}
+                          to start a discussion.
+                        </p>
+                      )
                     ) : (
                       <NewThreadForm
                         isSubmitting={threadAddLoading}
@@ -346,8 +357,8 @@ const ProtocolDetailPage = () => {
                         onCancel={handleCancelThread}
                       />
                     )}
-                    {threads.length > 0 ? (
-                      <ThreadList threads={threads} loading={threadsLoading} />
+                    {(threads ?? []).length > 0 ? (
+                      <ThreadList threads={threads!} loading={threadsLoading} />
                     ) : (
                       <EmptyState
                         icon="💬"
@@ -360,7 +371,7 @@ const ProtocolDetailPage = () => {
 
                 {activeTab === "reviews" && (
                   <div className="space-y-1">
-                    {reviews.map((r) => (
+                    {(reviews ?? []).map((r) => (
                       <ReviewItem
                         key={r.id}
                         review={r}
@@ -369,7 +380,7 @@ const ProtocolDetailPage = () => {
                         onDelete={handleDelete}
                       />
                     ))}
-                    {reviews.length === 0 && !reviewsLoading && (
+                    {(reviews ?? []).length === 0 && (
                       <EmptyState
                         icon="⭐"
                         title="No reviews yet"
@@ -386,18 +397,16 @@ const ProtocolDetailPage = () => {
                           error={reviewFailure}
                           success={reviewSucceeded}
                         />
-                      ) : (
-                        <p className="text-gray-400"></p>
-                      )
+                      ) : null
                     ) : (
-                      <div className="mt-3">
-                        <span className="text-gray-400">
-                          Please
-                          <Link className="text-green-700 px-1" to="/login">
-                            sign in
-                          </Link>
-                          to write a review
-                        </span>
+                      <div className="mt-3 text-sm text-stone-500">
+                        <Link
+                          className="text-sage-400 hover:text-sage-300"
+                          to="/login"
+                        >
+                          Sign in
+                        </Link>{" "}
+                        to write a review.
                       </div>
                     )}
                   </div>
@@ -451,22 +460,18 @@ const ProtocolDetailPage = () => {
             error={reviewEditError}
           />
         )}
-
         {modalType === "delete" && selectedReview && (
           <div>
-            <p>Are you sure you want to delete this review?</p>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={closeModal}
-                className="btn-ghost hover:text-gray-900! text-gray-700"
-              >
+            <p className="text-stone-400 mb-4">
+              Are you sure you want to delete this review?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={closeModal} className="btn-ghost">
                 Cancel
               </button>
-
               <button
                 onClick={handleDeleteReview}
-                className="btn-primary bg-red-700!"
+                className="btn-primary bg-red-700 hover:bg-red-600"
               >
                 {reviewDeleteLoading ? "Deleting..." : "Delete"}
               </button>

@@ -24,7 +24,10 @@ export interface ProtocolDatasourceInterface {
     protocolId: number | string,
     payload: CreateReviewPayload,
   ): Promise<Review>;
-  updateReview(reviewId: number, payload: CreateReviewPayload): Promise<Review>;
-  deleteReview(reviewId: number): Promise<void>;
+  updateReview(
+    reviewId: number | string,
+    payload: CreateReviewPayload,
+  ): Promise<Review>;
+  deleteReview(reviewId: number | string): Promise<void>;
   getThreads(protocolId: number | string): Promise<PaginatedResponse<Thread>>;
 }

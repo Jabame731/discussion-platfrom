@@ -6,6 +6,7 @@ import HomePage from "./app/containers/home-page";
 import NewProtocolPage from "./app/containers/new-protocol-page";
 import ProtocolDetailPage from "./app/containers/protocol-detail-page";
 import LoginPage from "./app/containers/login-page";
+import EditProtocolPage from "./app/containers/edit-protocol-page";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/protocols/new" element={<NewProtocolPage />} />
           <Route path="/protocols/:slug" element={<ProtocolDetailPage />} />
+          <Route path="/protocols/:slug/edit" element={<EditProtocolPage />} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </main>

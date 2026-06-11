@@ -18,6 +18,7 @@ export const fetchProtocols = createAsyncThunk<
   dispatch(protocolActions.fetchProtocolsStart());
   try {
     const result = await extra.protocolRepository.getProtocols(params);
+
     dispatch(
       protocolActions.fetchProtocolsSuccess({
         items: result.data,
@@ -65,7 +66,7 @@ export const createProtocol = createAsyncThunk<
 
 export const updateProtocol = createAsyncThunk<
   Protocol | undefined,
-  { id: number; payload: UpdateProtocolPayload },
+  { id: number | string; payload: UpdateProtocolPayload },
   ThunkApi
 >("protocols/update", async ({ id, payload }, { dispatch, extra }) => {
   dispatch(protocolActions.saveProtocolStart());
@@ -80,7 +81,7 @@ export const updateProtocol = createAsyncThunk<
   }
 });
 
-export const deleteProtocol = createAsyncThunk<void, number, ThunkApi>(
+export const deleteProtocol = createAsyncThunk<void, number | string, ThunkApi>(
   "protocols/delete",
   async (id, { dispatch, extra }) => {
     dispatch(protocolActions.saveProtocolStart());

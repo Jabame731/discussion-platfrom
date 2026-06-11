@@ -17,8 +17,11 @@ export interface IProtocolRepository {
   ): Promise<PaginatedResponse<Protocol>>;
   getProtocol(slug: string | number): Promise<Protocol>;
   createProtocol(payload: CreateProtocolPayload): Promise<Protocol>;
-  updateProtocol(id: number, payload: UpdateProtocolPayload): Promise<Protocol>;
-  deleteProtocol(id: number): Promise<void>;
+  updateProtocol(
+    id: number | string,
+    payload: UpdateProtocolPayload,
+  ): Promise<Protocol>;
+  deleteProtocol(id: number | string): Promise<void>;
   getReviews(protocolId: number | string): Promise<PaginatedResponse<Review>>;
   createReview(
     protocolId: number | string,

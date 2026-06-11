@@ -117,7 +117,7 @@ const protocolSlice = createSlice({
         p.id === action.payload.id ? action.payload : p,
       );
     },
-    deleteProtocolSuccess(state, action: PayloadAction<number>) {
+    deleteProtocolSuccess(state, action: PayloadAction<number | string>) {
       state.saving = false;
       state.items = state.items.filter((p) => p.id !== action.payload);
       if (state.current?.id === action.payload) state.current = null;
@@ -145,14 +145,15 @@ const protocolSlice = createSlice({
     addReviewSuccess(state, action: PayloadAction<Review>) {
       // upsert — replace if user already reviewed, else prepend
       state.addReviewSucceeded = true;
-      state;
-      const idx = state.reviews.findIndex(
+      state.addReviewStart = false;
+      if (!state.current?.reviews) return;
+      const idx = state.current.reviews.findIndex(
         (r) => r.user_id === action.payload.user_id,
       );
       if (idx >= 0) {
-        state.reviews[idx] = action.payload;
+        state.current.reviews[idx] = action.payload;
       } else {
-        state.reviews = [action.payload, ...state.reviews];
+        state.current.reviews = [action.payload, ...state.current.reviews];
       }
     },
     addReviewFailure(state, action: PayloadAction<string>) {
@@ -167,8 +168,11 @@ const protocolSlice = createSlice({
     },
     updateReviewSuccess(state, action: PayloadAction<Review>) {
       state.editReviewLoading = false;
-      const idx = state.reviews.findIndex((r) => r.id === action.payload.id);
-      if (idx >= 0) state.reviews[idx] = action.payload;
+      if (!state.current?.reviews) return;
+      const idx = state.current.reviews.findIndex(
+        (r) => r.id === action.payload.id,
+      );
+      if (idx >= 0) state.current.reviews[idx] = action.payload;
     },
     editReviewFailure(state, action: PayloadAction<string>) {
       state.editReviewLoading = false;
@@ -184,7 +188,10 @@ const protocolSlice = createSlice({
       state.addReviewSucceeded = false;
       state.addReviewStart = false;
       state.addReviewFailure = null;
-      state.reviews = state.reviews.filter((r) => r.id !== action.payload);
+      if (!state.current?.reviews) return;
+      state.current.reviews = state.current.reviews.filter(
+        (r) => r.id !== action.payload,
+      );
     },
     deleteReviewFailure(state) {
       state.deleteReviewLoading = false;
@@ -202,7 +209,11 @@ const protocolSlice = createSlice({
       state.protocolThreadsLoading = false;
     },
     prependProtocolThread(state, action: PayloadAction<Thread>) {
-      state.protocolThreads = [action.payload, ...state.protocolThreads];
+      if (!state.current) return;
+      state.current.threads = [
+        action.payload,
+        ...(state.current.threads ?? []),
+      ];
     },
   },
 });

@@ -47,7 +47,7 @@ export class ProtocolDatasource implements ProtocolDatasourceInterface {
   }
 
   async updateProtocol(
-    id: number,
+    id: number | string,
     payload: UpdateProtocolPayload,
   ): Promise<Protocol> {
     try {

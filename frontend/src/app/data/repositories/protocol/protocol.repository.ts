@@ -29,7 +29,7 @@ export class ProtocolRepository implements IProtocolRepository {
   }
 
   updateProtocol(
-    id: number,
+    id: number | string,
     payload: UpdateProtocolPayload,
   ): Promise<Protocol> {
     return this.datasource.updateProtocol(id, payload);

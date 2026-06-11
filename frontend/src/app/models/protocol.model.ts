@@ -38,3 +38,12 @@ export interface ProtocolListProps {
   loading?: boolean;
   error?: string | null;
 }
+
+export type ProtocolStatus = "published" | "draft" | "archived";
+
+export interface ProtocolForm {
+  title: string;
+  content: string;
+  tags: string;
+  status: ProtocolStatus;
+}
