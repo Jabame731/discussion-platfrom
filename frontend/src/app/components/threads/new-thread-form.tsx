@@ -1,19 +1,38 @@
 import { useState } from "react";
 import type { NewThreadFormProps } from "../../models";
 
-const NewThreadForm = ({
-  protocolId,
-  onSuccess,
-  onCancel,
-}: NewThreadFormProps) => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [tags, setTags] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface ThreadFormProps {
+  error: string | null;
+  isSubmitting: boolean;
+  onCancel?: () => void;
+  onSubmit: (data: { title: string; body: string; tags: string }) => void;
+}
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+const NewThreadForm = ({
+  onCancel,
+  error,
+  isSubmitting,
+  onSubmit,
+}: ThreadFormProps) => {
+  const [threadData, setThreadData] = useState({
+    title: "",
+    body: "",
+    tags: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setThreadData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    onSubmit({
+      title: threadData.title,
+      body: threadData.body,
+      tags: threadData.tags,
+    });
   };
 
   return (
@@ -29,23 +48,26 @@ const NewThreadForm = ({
       )}
       <input
         type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        value={threadData.title}
+        name="title"
+        onChange={handleChange}
         placeholder="Thread title..."
         className="input"
         required
       />
       <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
+        value={threadData.body}
+        onChange={handleChange}
+        name="body"
         placeholder="Share your thoughts..."
         className="textarea min-h-30"
         required
       />
       <input
         type="text"
-        value={tags}
-        onChange={(e) => setTags(e.target.value)}
+        value={threadData.tags}
+        name="tags"
+        onChange={handleChange}
         placeholder="Tags (comma separated)"
         className="input text-sm"
       />
@@ -57,10 +79,12 @@ const NewThreadForm = ({
         )}
         <button
           type="submit"
-          disabled={loading || !title.trim() || !body.trim()}
+          disabled={
+            isSubmitting || !threadData.title.trim() || !threadData.body.trim()
+          }
           className="btn-primary"
         >
-          {loading ? "Posting..." : "Post Thread"}
+          {isSubmitting ? "Posting..." : "Post Thread"}
         </button>
       </div>
     </form>

@@ -1,14 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-
-import type { AppDispatch } from "../index";
-import type { IAuthRepository } from "../../models";
+import type { ThunkApi } from "../index";
 import { authActions } from "../reducers/auth.reducer";
 import type { LoginPayload, RegisterPayload, User } from "../../models";
-
-interface ThunkApi {
-  dispatch: AppDispatch;
-  extra: { authRepository: IAuthRepository };
-}
 
 export const loginUser = createAsyncThunk<
   User | undefined,

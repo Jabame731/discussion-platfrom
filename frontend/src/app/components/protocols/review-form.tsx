@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import Stars from "../ui/stars";
+import type { Review } from "../../models";
 
 type ReviewFormProps = {
   mode?: "create" | "edit";
@@ -8,8 +8,7 @@ type ReviewFormProps = {
   success?: boolean;
   slug: string;
   error: string | null;
-  initialRating?: number;
-  initialFeedback?: string;
+  review?: Partial<Review>;
   onSubmit: (data: { rating: number; feedback: string; slug: string }) => void;
 };
 
@@ -20,23 +19,28 @@ const ReviewForm = ({
   success,
   slug,
   error,
-  initialRating = 0,
-  initialFeedback = "",
+  review,
 }: ReviewFormProps) => {
-  const [rating, setRating] = useState(initialRating);
-  const [feedback, setFeedback] = useState(initialFeedback);
+  const [reviewData, setReviewData] = useState({
+    rating: review?.rating ?? 0,
+    feedback: review?.feedback ?? "",
+  });
 
-  useEffect(() => {
-    setRating(initialRating);
-    setFeedback(initialFeedback);
-  }, [initialRating, initialFeedback]);
+  const handleRatingChange = (rating: number) => {
+    setReviewData((prev) => ({ ...prev, rating }));
+  };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setReviewData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     onSubmit({
-      rating,
-      feedback,
+      rating: reviewData?.rating,
+      feedback: reviewData?.feedback,
       slug,
     });
   };
@@ -66,17 +70,21 @@ const ReviewForm = ({
 
       <div className="flex items-center gap-2">
         <span className="text-xs text-stone-500">Rating:</span>
-
-        <Stars rating={rating} size="md" interactive onChange={setRating} />
-
-        {rating > 0 && (
-          <span className="text-xs text-stone-500">{rating}/5</span>
+        <Stars
+          rating={reviewData.rating}
+          size="md"
+          interactive
+          onChange={handleRatingChange}
+        />
+        {reviewData.rating > 0 && (
+          <span className="text-xs text-stone-500">{reviewData.rating}/5</span>
         )}
       </div>
 
       <textarea
-        value={feedback}
-        onChange={(e) => setFeedback(e.target.value)}
+        name="feedback"
+        value={reviewData.feedback}
+        onChange={handleFieldChange}
         placeholder="Optional feedback..."
         className="textarea min-h-20 text-sm"
       />
@@ -89,7 +97,7 @@ const ReviewForm = ({
 
       <button
         type="submit"
-        disabled={loading || !rating}
+        disabled={loading || !reviewData.rating}
         className="btn-primary text-sm"
       >
         {loading

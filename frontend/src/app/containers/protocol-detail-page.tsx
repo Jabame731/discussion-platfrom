@@ -8,6 +8,7 @@ import ReviewItem from "../components/ui/review-item";
 import ReviewForm from "../components/protocols/review-form";
 import ProtocolStats from "../components/protocols/protocol-stats";
 import {
+  createThread,
   deleteReviewLoading,
   editReviewError,
   editReviewLoading,
@@ -22,20 +23,24 @@ import {
   selectProtocolReviewsLoading,
   selectProtocolThreads,
   selectProtocolThreadsLoading,
+  selectThreadSaveError,
+  selectThreadSaving,
+  threadActions,
   useAppDispatch,
   useAppSelector,
 } from "../data/store";
-import { useEffect, useState } from "react";
 
+import { useEffect, useState } from "react";
 import Spinner from "../components/ui/spinner";
 import Tag from "../components/ui/tag";
 import Avatar from "../components/ui/avatar";
 import Stars from "../components/ui/stars";
 import clsx from "clsx";
-import { FetchProtocolsUsecase } from "../usecases";
 import { toast } from "react-toastify";
 import type { Review } from "../models";
 import Modal from "../components/ui/modal";
+import { ProtocolsUsecase, ThreadsUsecase } from "../usecases";
+import { arrayToString, stringToArray } from "../utils/helpers";
 
 type TabId = "threads" | "reviews";
 
@@ -105,6 +110,10 @@ const ProtocolDetailPage = () => {
   const reviewEditLoading = useAppSelector(editReviewLoading);
   const reviewEditError = useAppSelector(editReviewError);
 
+  // add a thread
+  const threadAddLoading = useAppSelector(selectThreadSaving);
+  const threadAddError = useAppSelector(selectThreadSaveError);
+
   // delete a review selectors
   const reviewDeleteLoading = useAppSelector(deleteReviewLoading);
 
@@ -121,6 +130,7 @@ const ProtocolDetailPage = () => {
   const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isSubmittingThread, setIsSubmittingThread] = useState(false);
 
   const userHasReview = reviews.some(
     (r) => r.author?.username === user?.username,
@@ -142,7 +152,7 @@ const ProtocolDetailPage = () => {
     slug: string;
   }) => {
     setIsSubmittingReview(true);
-    const usecase = new FetchProtocolsUsecase(dispatch);
+    const usecase = new ProtocolsUsecase(dispatch);
     usecase.updateReview(selectedReview?.id as number, {
       feedback: data.feedback,
       rating: data.rating,
@@ -151,7 +161,7 @@ const ProtocolDetailPage = () => {
 
   const handleDeleteReview = () => {
     setIsSubmittingDelete(true);
-    const usecase = new FetchProtocolsUsecase(dispatch);
+    const usecase = new ProtocolsUsecase(dispatch);
     usecase.deleteReview(selectedReview?.id as number);
   };
 
@@ -160,21 +170,53 @@ const ProtocolDetailPage = () => {
     setModalType(null);
   };
 
+  const handleCancelThread = () => {
+    setShowThread(false);
+    dispatch(threadActions.resetThreadError());
+  };
+
+  const handleOpenThread = () => {
+    setShowThread(true);
+    dispatch(threadActions.resetThreadError());
+  };
+
   const handleReviewSubmit = (data: {
     rating: number;
     feedback: string;
     slug: string;
   }) => {
-    const usecase = new FetchProtocolsUsecase(dispatch);
+    const usecase = new ProtocolsUsecase(dispatch);
     usecase.createReview(data.slug, {
       feedback: data.feedback,
       rating: data.rating,
     });
   };
 
+  const handleThreadSubmit = async (data: {
+    title: string;
+    tags: string;
+    body: string;
+  }) => {
+    const { title, tags, body } = data;
+    const tagsArr = stringToArray(tags);
+    const usecase = new ThreadsUsecase(dispatch);
+
+    await usecase.createThread({
+      body,
+      title,
+      tags: tagsArr,
+      protocol_id: protocol?.id,
+    });
+
+    if (!threadAddError) {
+      setShowThread(false);
+      dispatch(threadActions.resetThreadError());
+    }
+  };
+
   useEffect(() => {
     if (!slug) return;
-    const usecase = new FetchProtocolsUsecase(dispatch);
+    const usecase = new ProtocolsUsecase(dispatch);
     usecase.loadAll(slug);
   }, [slug, dispatch]);
 
@@ -291,23 +333,17 @@ const ProtocolDetailPage = () => {
                   <div className="space-y-4">
                     {!showThread ? (
                       <button
-                        onClick={() => setShowThread(true)}
+                        onClick={handleOpenThread}
                         className="btn-primary w-full sm:w-auto"
                       >
                         + Start Discussion
                       </button>
                     ) : (
                       <NewThreadForm
-                        protocolId={protocol.id}
-                        onSuccess={async (data) => {
-                          // const usecase = new CreateThreadUsecase(dispatch);
-                          // await usecase.execute({
-                          //   ...data,
-                          //   protocol_id: protocol.id,
-                          // });
-                          // setShowThread(false);
-                        }}
-                        onCancel={() => setShowThread(false)}
+                        isSubmitting={threadAddLoading}
+                        error={threadAddError}
+                        onSubmit={handleThreadSubmit}
+                        onCancel={handleCancelThread}
                       />
                     )}
                     {threads.length > 0 ? (
@@ -408,6 +444,7 @@ const ProtocolDetailPage = () => {
         {modalType === "edit" && selectedReview && (
           <ReviewForm
             mode="edit"
+            review={selectedReview}
             slug={protocol.slug}
             onSubmit={handleEditReview}
             loading={reviewEditLoading}

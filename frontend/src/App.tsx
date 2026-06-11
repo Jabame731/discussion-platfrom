@@ -3,6 +3,7 @@ import "./App.css";
 import Navbar from "./app/components/layout/navbar";
 import { ToastContainer } from "react-toastify";
 import HomePage from "./app/containers/home-page";
+import NewProtocolPage from "./app/containers/new-protocol-page";
 import ProtocolDetailPage from "./app/containers/protocol-detail-page";
 import LoginPage from "./app/containers/login-page";
 
@@ -13,6 +14,7 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/protocols/new" element={<NewProtocolPage />} />
           <Route path="/protocols/:slug" element={<ProtocolDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>

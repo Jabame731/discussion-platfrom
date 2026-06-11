@@ -9,7 +9,6 @@ import {
 } from "../data/store";
 import { useEffect, useState } from "react";
 import { AuthUsecase } from "../usecases/auth.usecase";
-import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -26,8 +25,6 @@ const LoginPage = () => {
     if (!attempted) return;
     if (loggedIn) {
       navigate("/");
-    }
-    if (authError) {
     }
   }, [loggedIn, authError, attempted, navigate]);
 
@@ -51,7 +48,6 @@ const LoginPage = () => {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Inline error for accessibility — toast shows it too */}
         {authError && attempted && (
           <p
             className="text-sm text-red-400 bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2"

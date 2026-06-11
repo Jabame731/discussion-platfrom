@@ -11,6 +11,8 @@ export * from "./wellness-platform.model";
 
 // Thread
 export * from "./thread.model";
+export * from "./thread.repository.interface";
+export * from "./thread.datasource.interface";
 
 // Comment
 export * from "./comment.model";

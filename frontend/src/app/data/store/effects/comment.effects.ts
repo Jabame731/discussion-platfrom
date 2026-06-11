@@ -1,16 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { commentActions, type AppDispatch } from "../index";
-import type {
-  ICommentRepository,
-  CreateCommentPayload,
-  VoteResponse,
-} from "../../models";
+import { commentActions, type ThunkApi } from "../index";
+import type { CreateCommentPayload, VoteResponse } from "../../models";
 import type { Comment } from "../../../models";
-
-interface ThunkApi {
-  dispatch: AppDispatch;
-  extra: { commentRepository: ICommentRepository };
-}
 
 export const fetchComments = createAsyncThunk<void, string | number, ThunkApi>(
   "comments/fetchAll",

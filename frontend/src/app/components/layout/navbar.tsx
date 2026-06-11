@@ -13,7 +13,6 @@ import { AuthUsecase } from "../../usecases/auth.usecase";
 const Navbar = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const navigate = useNavigate();
   const user = useAppSelector(selectCurrentUser);
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,7 +28,6 @@ const Navbar = () => {
 
   const handleLogout = () => {
     new AuthUsecase(dispatch).logout();
-    navigate("/");
     setMenuOpen(false);
   };
 

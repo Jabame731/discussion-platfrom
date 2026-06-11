@@ -5,8 +5,8 @@ import FilterHeader from "../components/search/filter-header";
 import ProtocolList from "../components/protocols/protocol-list";
 import type { ProtocolSort, SortOption } from "../models";
 import EmptyState from "../components/ui/empty-state";
-import { BiLeaf } from "react-icons/bi";
 import {
+  selectCurrentUser,
   selectProtocolList,
   selectProtocolListError,
   selectProtocolListLoading,
@@ -20,8 +20,7 @@ import {
   type TypesenseProtocolDocument,
 } from "../data/models";
 import { useDebounce } from "../hooks";
-import { FetchProtocolsUsecase } from "../usecases";
-import { toast } from "react-toastify";
+import { ProtocolsUsecase } from "../usecases";
 
 const SORT_OPTIONS: SortOption[] = [
   { label: "Recent", value: "recent" },
@@ -49,6 +48,9 @@ const HomePage = () => {
   const [tsFound, setTsFound] = useState<number | null>(null);
   const [tsLoading, setTsLoading] = useState(false);
 
+  //user
+  const user = useAppSelector(selectCurrentUser);
+
   // debounce the search query
   const debouncedQuery = useDebounce(query, 300);
 
@@ -61,7 +63,7 @@ const HomePage = () => {
   useEffect(() => {
     if (debouncedQuery) return;
     // Usecase dispatches to the store
-    const usecase = new FetchProtocolsUsecase(dispatch);
+    const usecase = new ProtocolsUsecase(dispatch);
     usecase.execute({ sort, page, per_page: 12, q: query });
   }, [debouncedQuery, sort, page, dispatch]);
 
@@ -105,17 +107,19 @@ const HomePage = () => {
       <div className="mb-10 animate-fade-up">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <div>
-            <h1 className="font-serif text-4xl text-stone-100 leading-tight mb-2">
+            {/* <h1 className="text-4xl text-stone-100 leading-tight mb-2">
               Wellness Protocols
-            </h1>
+            </h1> */}
             <p className="text-stone-500 text-base max-w-lg">
               Evidence-based health protocols shared and reviewed by the
               community.
             </p>
           </div>
-          <Link to="/protocols/new" className="btn-primary shrink-0">
-            + New Protocol
-          </Link>
+          {user && (
+            <Link to="/protocols/new" className="btn-primary shrink-0">
+              + New Protocol
+            </Link>
+          )}
         </div>
       </div>
 

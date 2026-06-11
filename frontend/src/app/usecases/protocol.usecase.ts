@@ -10,7 +10,7 @@ import {
   type AppDispatch,
 } from "../data/store";
 
-export class FetchProtocolsUsecase {
+export class ProtocolsUsecase {
   constructor(private dispatch: AppDispatch) {}
 
   execute(params?: ProtocolListParams): void {

@@ -1,20 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { protocolActions, type AppDispatch } from "../index";
+import { protocolActions, type ThunkApi } from "../index";
 import type {
   CreateProtocolPayload,
   CreateReviewPayload,
-  IProtocolRepository,
   Protocol,
   ProtocolListParams,
   Review,
   UpdateProtocolPayload,
 } from "../../models";
-
-interface ThunkApi {
-  dispatch: AppDispatch;
-  extra: { protocolRepository: IProtocolRepository };
-}
 
 export const fetchProtocols = createAsyncThunk<
   void,

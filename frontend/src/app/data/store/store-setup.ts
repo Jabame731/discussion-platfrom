@@ -8,10 +8,16 @@ import {
 } from "react-redux";
 
 import { repositories } from "../repositories";
-import type { IProtocolRepository, IAuthRepository } from "../models";
+import type {
+  IProtocolRepository,
+  IAuthRepository,
+  IThreadRepository,
+  ICommentRepository,
+} from "../models";
 import protocolReducer from "./reducers/protocol.reducer";
 import authReducer from "./reducers/auth.reducer";
 import commentReducer from "./reducers/comment.reducer";
+import threadReducer from "./reducers/thread.reducer";
 
 const authPersistConfig = {
   key: "auth",
@@ -23,6 +29,7 @@ const rootReducer = combineReducers({
   protocols: protocolReducer,
   auth: persistReducer(authPersistConfig, authReducer),
   comments: commentReducer,
+  threads: threadReducer,
 });
 
 export const store = configureStore({
@@ -48,12 +55,14 @@ export const persistor = persistStore(store);
 export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
 
-// Typed ThunkApi — single source of truth, import this in all effect files
+// Typed ThunkApi
 export interface ThunkApi {
   dispatch: AppDispatch;
   extra: {
     protocolRepository: IProtocolRepository;
     authRepository: IAuthRepository;
+    threadRepository: IThreadRepository;
+    commentRepository: ICommentRepository;
   };
 }
 

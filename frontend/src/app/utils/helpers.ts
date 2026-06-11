@@ -32,3 +32,24 @@ export function toSlug(text: string): string {
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-");
 }
+
+/**
+ * Converts a comma-separated string into a clean string array.
+ */
+export function stringToArray(input?: string): string[] {
+  return input!
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+}
+
+/**
+ * Converts an array of strings into a single comma-separated string.
+ * Automatically cleans up empty items and trims whitespace.
+ */
+export function arrayToString(input?: string[]): string {
+  return input!
+    .map((item) => item.trim())
+    .filter((item) => item !== "")
+    .join(", ");
+}
