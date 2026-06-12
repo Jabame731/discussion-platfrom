@@ -98,7 +98,7 @@ const NewThreadPage = () => {
               value={form.body}
               onChange={set("body")}
               placeholder="Share your thoughts, questions, or experiences..."
-              className="textarea min-h-[200px]"
+              className="textarea min-h-50"
               required
             />
           </div>
