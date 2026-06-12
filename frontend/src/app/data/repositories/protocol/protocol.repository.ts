@@ -9,6 +9,7 @@ import type {
   Review,
   Thread,
   UpdateProtocolPayload,
+  VoteResponse,
 } from "../../models";
 
 export class ProtocolRepository implements IProtocolRepository {
@@ -63,5 +64,12 @@ export class ProtocolRepository implements IProtocolRepository {
 
   getThreads(protocolId: number | string): Promise<PaginatedResponse<Thread>> {
     return this.datasource.getThreads(protocolId);
+  }
+
+  voteProtocol(
+    slug: number | string,
+    type: "upvote" | "downvote",
+  ): Promise<VoteResponse> {
+    return this.datasource.voteProtocol(slug, type);
   }
 }

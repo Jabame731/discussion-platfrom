@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use App\Models\Thread;
 use App\Models\Protocol;
 use App\Services\TypesenseService;
@@ -102,20 +103,61 @@ class ThreadController extends Controller
         return response()->json($thread, 201);
     }
 
-    /**
-     * GET /api/threads/{idOrSlug}
-     */
     public function show(string $idOrSlug): JsonResponse
-    {
-        $thread = Thread::with(['author', 'protocol', 'rootComments.author', 'rootComments.replies.author'])
+    {   
+        $thread = Thread::with(['author', 'protocol'])
             ->where('slug', $idOrSlug)
             ->orWhere('id', $idOrSlug)
             ->firstOrFail();
 
         $thread->increment('views_count');
 
-        return response()->json($thread);
+        // Flat fetch ALL comments for this thread
+        $allComments = Comment::with('author')
+            ->where('thread_id', $thread->id)
+            ->orderBy('id')
+            ->get()
+            ->keyBy('id');
+
+        // Initialize replies on every comment
+        foreach ($allComments as $comment) {
+            $comment->setRelation('replies', collect());
+        }
+
+        // Wire children to parents
+        $roots = [];
+        foreach ($allComments as $comment) {
+            if (is_null($comment->parent_id)) {
+                $roots[] = $comment;
+            } elseif (isset($allComments[$comment->parent_id])) {
+                $allComments[$comment->parent_id]->replies->push($comment);
+            }
+        }
+
+        // Format the tree
+        $formattedComments = array_map(fn ($c) => $this->formatComment($c), $roots);
+
+        return response()->json(array_merge($thread->toArray(), [
+            'root_comments' => $formattedComments
+        ]));
     }
+
+private function formatComment(Comment $comment): array
+{
+    return [
+        'id'              => $comment->id,
+        'body'            => $comment->is_deleted ? '[deleted]' : $comment->body,
+        'is_deleted'      => $comment->is_deleted,
+        'upvotes_count'   => $comment->upvotes_count,
+        'downvotes_count' => $comment->downvotes_count,
+        'created_at'      => $comment->created_at,
+        'updated_at'      => $comment->updated_at,
+        'author'          => $comment->author,
+        'replies'         => $comment->replies
+                                ->map(fn ($r) => $this->formatComment($r))
+                                ->values(),
+    ];
+}
 
     /**
      * PUT /api/threads/{id}

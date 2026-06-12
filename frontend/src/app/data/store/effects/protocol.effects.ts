@@ -8,6 +8,7 @@ import type {
   ProtocolListParams,
   Review,
   UpdateProtocolPayload,
+  VoteResponse,
 } from "../../models";
 
 export const fetchProtocols = createAsyncThunk<
@@ -186,5 +187,27 @@ export const fetchProtocolThreads = createAsyncThunk<
     dispatch(protocolActions.fetchProtocolThreadsSuccess(result.data));
   } catch {
     dispatch(protocolActions.fetchProtocolThreadsFailure());
+  }
+});
+
+export const voteProtocol = createAsyncThunk<
+  VoteResponse | undefined,
+  { id: number; voteType: "upvote" | "downvote"; slug: string },
+  ThunkApi
+>("protocols/vote", async ({ id, voteType, slug }, { dispatch, extra }) => {
+  try {
+    const result = await extra.protocolRepository.voteProtocol(slug, voteType);
+    dispatch(protocolActions.voteProtocolSuccess(result));
+    return result;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to vote";
+    // dispatch(protocolActions.voteProtocolFailure(
+    //   {
+    //     error: message,
+    //   rollback: {
+    //     upvotes_count:
+    //   }
+    // }));
+    throw err;
   }
 });

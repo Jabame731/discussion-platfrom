@@ -13,18 +13,37 @@ class CommentController extends Controller
 {
     /**
      * GET /api/threads/{thread}/comments
-     * Returns root-level comments with nested replies (2 levels deep by default).
+     * Returns root-level comments with ALL nested replies (unlimited depth).
      */
     public function index(Thread $thread): JsonResponse
     {
-        $comments = Comment::with(['author', 'replies.author', 'replies.replies.author'])
+        // Flat fetch of ALL comments in one query
+        $allComments = Comment::with('author')
             ->where('thread_id', $thread->id)
-            ->whereNull('parent_id')
-            ->orderBy('created_at')
+            ->orderBy('id')
             ->get()
-            ->map(fn ($c) => $this->formatComment($c));
+            ->keyBy('id');
 
-        return response()->json(['data' => $comments]);
+        // Give EVERY comment an empty replies collection
+        // This prevents Eloquent from lazy-loading `replies` later
+        foreach ($allComments as $comment) {
+            $comment->setRelation('replies', collect());
+        }
+
+        // Wire each comment to its parent's replies collection
+        $roots = [];
+        foreach ($allComments as $comment) {
+
+            if (is_null($comment->parent_id)) {
+                $roots[] = $comment;
+            } elseif (isset($allComments[$comment->parent_id])) {
+                $allComments[$comment->parent_id]->replies->push($comment);
+            }
+        }
+
+        $formatted = array_map(fn ($c) => $this->formatComment($c), $roots);
+
+        return response()->json(['data' => $formatted]);
     }
 
     /**
@@ -85,8 +104,7 @@ class CommentController extends Controller
         return response()->json(['message' => 'Comment deleted.']);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
+    // Helpers
     private function formatComment(Comment $comment): array
     {
         return [
@@ -98,7 +116,9 @@ class CommentController extends Controller
             'created_at'      => $comment->created_at,
             'updated_at'      => $comment->updated_at,
             'author'          => $comment->author,
-            'replies'         => $comment->replies->map(fn ($r) => $this->formatComment($r)),
+            'replies'         => $comment->replies
+                                    ->map(fn ($r) => $this->formatComment($r))
+                                    ->values(),
         ];
     }
 }

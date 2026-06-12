@@ -9,6 +9,7 @@ import type {
   Protocol,
   Review,
   Thread,
+  VoteResponse,
 } from "./wellness-platform.model";
 
 export interface IProtocolRepository {
@@ -30,4 +31,8 @@ export interface IProtocolRepository {
   updateReview(reviewId: number, payload: CreateReviewPayload): Promise<Review>;
   deleteReview(reviewId: number): Promise<void>;
   getThreads(protocolId: number | string): Promise<PaginatedResponse<Thread>>;
+  voteProtocol(
+    slug: number | string,
+    type: "upvote" | "downvote",
+  ): Promise<VoteResponse>;
 }

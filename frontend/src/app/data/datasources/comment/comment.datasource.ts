@@ -1,6 +1,11 @@
-import type { Comment } from "../../../models";
+import type { Comment, ThreadComment } from "../../../models";
 import { toDomainError } from "../../errors/domain-error";
-import { api, type ICommentDatasource, type VoteResponse } from "../../models";
+import {
+  api,
+  type ICommentDatasource,
+  type VoteResponse,
+  type VotesResponseAPI,
+} from "../../models";
 
 export interface CreateCommentPayload {
   body: string;
@@ -10,12 +15,11 @@ export interface CreateCommentPayload {
 export class CommentDatasource implements ICommentDatasource {
   async getComments(threadId: string | number): Promise<Comment[]> {
     try {
-      const { data } = await api.get<{ data: Comment[] }>(
+      const { data } = await api.get<{ root_comments: Comment[] }>(
         `/threads/${threadId}/comments`,
       );
-      console.log(data);
 
-      return data.data ?? [];
+      return data.root_comments;
     } catch (err) {
       throw toDomainError(err);
     }
@@ -61,6 +65,9 @@ export class CommentDatasource implements ICommentDatasource {
       const { data } = await api.post<VoteResponse>(`/comments/${id}/vote`, {
         type,
       });
+
+      console.log(data);
+
       return data;
     } catch (err) {
       throw toDomainError(err);

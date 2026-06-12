@@ -62,9 +62,11 @@ Route::prefix('v1')->group(function () {
     Route::put('/reviews/{review}',    [ReviewController::class, 'update']);
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
-    // Votes 
-    Route::post('/threads/{thread}/vote',   [VoteController::class, 'voteThread']);
-    Route::post('/comments/{comment}/vote', [VoteController::class, 'voteComment']);
+    // Votes
+    Route::get('/votes',                          [VoteController::class, 'index']);
+    Route::post('/threads/{thread}/vote',         [VoteController::class, 'voteThread']);
+    Route::post('/comments/{comment}/vote',       [VoteController::class, 'voteComment']);
+    Route::post('/protocols/{protocol}/vote',     [VoteController::class, 'voteProtocol']);
 
     // Reindex Typesense via API
     Route::post('/admin/reindex', function () {

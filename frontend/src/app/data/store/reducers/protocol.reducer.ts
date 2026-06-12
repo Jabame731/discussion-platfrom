@@ -1,5 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { PaginatedMeta, Protocol, Review, Thread } from "../../models";
+import type {
+  PaginatedMeta,
+  Protocol,
+  Review,
+  Thread,
+  VoteResponse,
+} from "../../models";
 
 interface ProtocolState {
   // list
@@ -14,22 +20,23 @@ interface ProtocolState {
   // reviews
   reviews: Review[];
   reviewsLoading: boolean;
-
   // add reviews
   addReviewStart: boolean;
   addReviewSucceeded: boolean;
   addReviewFailure: string | null;
-
+  // edit/delete review
   editReviewLoading: boolean;
   editReviewError: string | null;
   deleteReviewLoading: boolean;
-
   // protocol threads
   protocolThreads: Thread[];
   protocolThreadsLoading: boolean;
   // mutation
   saving: boolean;
   saveError: string | null;
+  // vote
+  voteLoading: boolean;
+  voteError: string | null;
 }
 
 const initialState: ProtocolState = {
@@ -58,6 +65,9 @@ const initialState: ProtocolState = {
 
   saving: false,
   saveError: null,
+
+  voteLoading: false,
+  voteError: null,
 };
 
 const protocolSlice = createSlice({
@@ -100,7 +110,7 @@ const protocolSlice = createSlice({
       state.detailError = action.payload;
     },
 
-    // Create
+    //  Create / Update / Delete
     saveProtocolStart(state) {
       state.saving = true;
       state.saveError = null;
@@ -126,6 +136,76 @@ const protocolSlice = createSlice({
       state.saving = false;
       state.saveError = action.payload;
     },
+    voteProtocolStart(state) {
+      state.voteLoading = true;
+      state.voteError = null;
+    },
+    voteProtocolOptimistic(
+      state,
+      action: PayloadAction<{
+        upvotes_count: number;
+        downvotes_count: number;
+      }>,
+    ) {
+      if (!state.current) return;
+      state.current = {
+        ...state.current,
+        upvotes_count: action.payload.upvotes_count,
+        downvotes_count: action.payload.downvotes_count,
+      };
+      state.items = state.items.map((p) =>
+        p.id === state.current?.id
+          ? {
+              ...p,
+              upvotes_count: action.payload.upvotes_count,
+              downvotes_count: action.payload.downvotes_count,
+            }
+          : p,
+      );
+    },
+    voteProtocolSuccess(state, action: PayloadAction<VoteResponse>) {
+      state.voteLoading = false;
+      if (!state.current) return;
+      state.current = {
+        ...state.current,
+        upvotes_count: action.payload.upvotes_count,
+        downvotes_count: action.payload.downvotes_count,
+      };
+      state.items = state.items.map((p) =>
+        p.id === state.current?.id
+          ? {
+              ...p,
+              upvotes_count: action.payload.upvotes_count,
+              downvotes_count: action.payload.downvotes_count,
+            }
+          : p,
+      );
+    },
+    voteProtocolFailure(
+      state,
+      action: PayloadAction<{
+        error: string;
+        rollback: { upvotes_count: number; downvotes_count: number };
+      }>,
+    ) {
+      state.voteLoading = false;
+      state.voteError = action.payload.error;
+      if (!state.current) return;
+      state.current = {
+        ...state.current,
+        upvotes_count: action.payload.rollback.upvotes_count,
+        downvotes_count: action.payload.rollback.downvotes_count,
+      };
+      state.items = state.items.map((p) =>
+        p.id === state.current?.id
+          ? {
+              ...p,
+              upvotes_count: action.payload.rollback.upvotes_count,
+              downvotes_count: action.payload.rollback.downvotes_count,
+            }
+          : p,
+      );
+    },
 
     // Reviews
     fetchReviewsStart(state) {
@@ -143,7 +223,6 @@ const protocolSlice = createSlice({
       state.addReviewFailure = null;
     },
     addReviewSuccess(state, action: PayloadAction<Review>) {
-      // upsert — replace if user already reviewed, else prepend
       state.addReviewSucceeded = true;
       state.addReviewStart = false;
       if (!state.current?.reviews) return;
@@ -161,7 +240,6 @@ const protocolSlice = createSlice({
       state.addReviewSucceeded = false;
       state.addReviewFailure = action.payload;
     },
-    // Update review
     editReviewStart(state) {
       state.editReviewLoading = true;
       state.editReviewError = null;
@@ -178,8 +256,6 @@ const protocolSlice = createSlice({
       state.editReviewLoading = false;
       state.editReviewError = action.payload;
     },
-
-    // Delete review
     deleteReviewStart(state) {
       state.deleteReviewLoading = true;
     },
@@ -197,7 +273,7 @@ const protocolSlice = createSlice({
       state.deleteReviewLoading = false;
     },
 
-    // Protocol threads
+    //  Protocol threads
     fetchProtocolThreadsStart(state) {
       state.protocolThreadsLoading = true;
     },

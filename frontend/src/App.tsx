@@ -9,6 +9,7 @@ import LoginPage from "./app/containers/login-page";
 import EditProtocolPage from "./app/containers/edit-protocol-page";
 import ThreadsPage from "./app/containers/thread-page";
 import ThreadDetailPage from "./app/containers/thread-detail-page";
+import NewThreadPage from "./app/containers/new-thread-page";
 
 function App() {
   return (
@@ -23,9 +24,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/threads" element={<ThreadsPage />} />
           <Route path="/threads/:id" element={<ThreadDetailPage />} />
-          {/* <Route path="/threads/new" element={<NewThreadPage />} />
-      
-  
+          <Route path="/threads/new" element={<NewThreadPage />} />
+
           {/* <Route path="/register" element={<RegisterPage />} /> */}
         </Routes>
       </main>

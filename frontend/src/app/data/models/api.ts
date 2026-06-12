@@ -84,8 +84,7 @@ export const threadsApi = {
 };
 
 export const commentsApi = {
-  list: (threadId: number | string) =>
-    api.get<{ data: Comment[] }>(`/threads/${threadId}/comments`),
+  list: (threadId: number | string) => api.get(`/threads/${threadId}/comments`),
   create: (threadId: number | string, data: CommentCreateData) =>
     api.post<Comment>(`/threads/${threadId}/comments`, data),
   update: (id: number, data: { body: string }) =>

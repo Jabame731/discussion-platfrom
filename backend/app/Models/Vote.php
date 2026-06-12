@@ -20,13 +20,13 @@ class Vote extends Model
 
     protected static function booted()
     {
-        $recalc = function (Vote $v) {
-            $v->votable?->recalculateVotes();
-        };
+        // $recalc = function (Vote $v) {
+        //     $v->votable?->recalculateVotes();
+        // };
         
-        static::created($recalc);
-        static::updated($recalc);
-        static::deleted($recalc);
+        // static::created($recalc);
+        // static::updated($recalc);
+        // static::deleted($recalc);
     }
 
     public function user(): BelongsTo

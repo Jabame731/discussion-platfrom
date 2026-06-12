@@ -140,31 +140,29 @@ const ThreadDetailPage = () => {
         .filter(Boolean);
       await dispatch(
         updateThread({
-          id: thread.id,
+          slug: thread.slug,
           payload: { title: editData.title, body: editData.body, tags },
         }),
       ).unwrap();
-      toast.success("Thread updated", { position: "bottom-right" });
       setIsEditing(false);
-    } catch {
-      toast.error("Failed to update thread", { position: "bottom-right" });
+    } catch (err) {
+      console.error(err);
     } finally {
       setEditLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (
-      !thread ||
-      !window.confirm("Delete this thread? This cannot be undone.")
-    )
-      return;
     setDeleteLoading(true);
     try {
-      await dispatch(deleteThread(thread.id)).unwrap();
-      toast.success("Thread deleted", { position: "bottom-right" });
-      if (thread.protocol_id) {
-        navigate(`/protocols/${thread.protocol?.slug ?? thread.protocol_id}`);
+      await dispatch(
+        deleteThread({
+          id: thread?.id as number,
+          slug: thread?.slug as string,
+        }),
+      ).unwrap();
+      if (thread!.protocol_id) {
+        navigate(`/protocols/${thread!.protocol?.slug ?? thread!.protocol_id}`);
       } else {
         navigate("/threads");
       }
@@ -354,12 +352,13 @@ const ThreadDetailPage = () => {
       {/* Comments section */}
       <div className="animate-fade-up stagger-1" style={{ opacity: 0 }}>
         <h2 className="font-serif text-lg text-stone-200 mb-4">
-          {comments.length} Comment{comments.length !== 1 ? "s" : ""}
+          {thread.comments_count} Comment
+          {thread.comments_count !== 1 ? "s" : ""}
         </h2>
 
         {isLoggedIn ? (
           <div className="mb-6">
-            <NewCommentForm threadId={id ?? ""} />
+            <NewCommentForm threadId={id ?? ""} threadSlug={thread.slug} />
           </div>
         ) : (
           <div className="card p-4 mb-6 text-sm text-stone-500">
@@ -369,8 +368,6 @@ const ThreadDetailPage = () => {
             to join the discussion.
           </div>
         )}
-
-        <span className="text-white"> {JSON.stringify(comments)}</span>
 
         {commentsLoading ? (
           <div className="flex justify-center py-8">
@@ -383,7 +380,13 @@ const ThreadDetailPage = () => {
         ) : (
           <div className="space-y-0">
             {comments.map((comment) => (
-              <CommentNode key={comment.id} comment={comment} depth={0} />
+              <CommentNode
+                key={comment.id}
+                comment={comment}
+                depth={0}
+                threadId={id ?? ""}
+                threadSlug={thread.slug}
+              />
             ))}
           </div>
         )}

@@ -1,6 +1,6 @@
 import type { Comment } from "../../models";
 import type { CreateCommentPayload } from "./comment.model";
-import type { VoteResponse } from "./wellness-platform.model";
+import type { VoteResponse, VotesResponseAPI } from "./wellness-platform.model";
 
 export interface ICommentRepository {
   getComments(threadId: string | number): Promise<Comment[]>;

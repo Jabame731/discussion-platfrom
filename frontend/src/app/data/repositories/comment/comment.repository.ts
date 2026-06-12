@@ -4,6 +4,7 @@ import type {
   ICommentDatasource,
   ICommentRepository,
   VoteResponse,
+  VotesResponseAPI,
 } from "../../models";
 
 export class CommentRepository implements ICommentRepository {

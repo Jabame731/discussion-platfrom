@@ -16,6 +16,7 @@ export interface TypesenseThreadDocument {
   id: string;
   title: string;
   body: string;
+  slug: string;
   tags: string[];
   author_name: string;
   protocol_id?: number;

@@ -66,6 +66,18 @@ function updateBodyInTree(
   });
 }
 
+function markDeletedInTree(comments: Comment[], commentId: number): Comment[] {
+  return comments.map((c) => {
+    if (c.id === commentId) {
+      return { ...c, is_deleted: true, body: "[deleted]" };
+    }
+    if (c.replies?.length) {
+      return { ...c, replies: markDeletedInTree(c.replies, commentId) };
+    }
+    return c;
+  });
+}
+
 const commentSlice = createSlice({
   name: "comments",
   initialState,
@@ -75,10 +87,8 @@ const commentSlice = createSlice({
     },
     fetchCommentsSuccess(
       state,
-      action: PayloadAction<{ threadId: string; comments: Comment[] }>,
+      action: PayloadAction<{ threadId: string | number; comments: Comment[] }>,
     ) {
-      console.log(action);
-
       const { threadId, comments } = action.payload;
       state.byThread[threadId] = comments;
       state.loading[threadId] = false;
@@ -93,6 +103,14 @@ const commentSlice = createSlice({
     ) {
       const { threadId, comment } = action.payload;
       const existing = state.byThread[threadId] ?? [];
+      console.log([
+        ...existing,
+        {
+          ...comment,
+          replies: [],
+        },
+      ]);
+
       state.byThread[threadId] = [...existing, { ...comment, replies: [] }];
       state.saving = false;
     },
@@ -106,8 +124,12 @@ const commentSlice = createSlice({
       }>,
     ) {
       const { threadId, parentId, reply } = action.payload;
+
       const existing = state.byThread[threadId] ?? [];
-      state.byThread[threadId] = insertReply(existing, parentId, reply);
+      state.byThread[threadId] = insertReply(existing, parentId, {
+        ...reply,
+        replies: reply.replies ?? [],
+      });
       state.saving = false;
     },
 
@@ -130,14 +152,10 @@ const commentSlice = createSlice({
       action: PayloadAction<{ threadId: string; commentId: number }>,
     ) {
       const { threadId, commentId } = action.payload;
-      const mark = (list: Comment[]): Comment[] =>
-        list.map((c) => {
-          if (c.id === commentId)
-            return { ...c, is_deleted: true, body: "[deleted]" };
-          if (c.replies?.length) return { ...c, replies: mark(c.replies) };
-          return c;
-        });
-      state.byThread[threadId] = mark(state.byThread[threadId] ?? []);
+      state.byThread[threadId] = markDeletedInTree(
+        state.byThread[threadId] ?? [],
+        commentId,
+      );
     },
 
     voteCommentSuccess(

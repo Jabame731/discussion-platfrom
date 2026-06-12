@@ -43,20 +43,20 @@ export class ThreadDatasource implements IThreadDatasource {
   }
 
   async updateThread(
-    id: number,
+    slug: string,
     payload: UpdateThreadPayload,
   ): Promise<Thread> {
     try {
-      const { data } = await api.put<Thread>(`/threads/${id}`, payload);
+      const { data } = await api.put<Thread>(`/threads/${slug}`, payload);
       return data;
     } catch (err) {
       throw toDomainError(err);
     }
   }
 
-  async deleteThread(id: number): Promise<void> {
+  async deleteThread(slug: string): Promise<void> {
     try {
-      await api.delete(`/threads/${id}`);
+      await api.delete(`/threads/${slug}`);
     } catch (err) {
       throw toDomainError(err);
     }

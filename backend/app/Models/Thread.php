@@ -87,9 +87,15 @@ class Thread extends Model
     // Helpers
     public function recalculateVotes(): void
     {
-        $this->upvotes_count = $this->votes()->where('type', 'upvote')->count();
-        $this->downvotes_count = $this->votes()->where('type', 'downvote')->count();
-        $this->saveQuietly();
+        $this->update([
+            'upvotes_count' => $this->votes()
+                ->where('type', 'upvote')
+                ->count(),
+
+            'downvotes_count' => $this->votes()
+                ->where('type', 'downvote')
+                ->count(),
+        ]);
     }
 
     public function recalculateComments(): void

@@ -9,6 +9,7 @@ import {
   type Review,
   type Thread,
   type UpdateProtocolPayload,
+  type VoteResponse,
 } from "../../models";
 import { toDomainError } from "../../errors/domain-error";
 
@@ -122,6 +123,20 @@ export class ProtocolDatasource implements ProtocolDatasourceInterface {
         `/protocols/${protocolId}/threads`,
       );
       return res.data;
+    } catch (err) {
+      throw toDomainError(err);
+    }
+  }
+
+  async voteProtocol(
+    slug: number | string,
+    type: "upvote" | "downvote",
+  ): Promise<VoteResponse> {
+    try {
+      const { data } = await api.post<VoteResponse>(`/protocols/${slug}/vote`, {
+        type,
+      });
+      return data;
     } catch (err) {
       throw toDomainError(err);
     }

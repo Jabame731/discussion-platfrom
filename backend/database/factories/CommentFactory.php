@@ -39,8 +39,6 @@ class CommentFactory extends Factory
             'thread_id'        => Thread::factory(),
             'parent_id'        => null,
             'body'             => fake()->randomElement(static::$bodies),
-            'upvotes_count'    => fake()->numberBetween(0, 50),
-            'downvotes_count'  => fake()->numberBetween(0, 5),
             'is_deleted'       => false,
         ];
     }

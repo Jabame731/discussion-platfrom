@@ -201,6 +201,7 @@ class TypesenseService
 
         return [
             'id'              => (string) $protocol->id,
+            'slug'            => $protocol->slug,
             'title'           => $protocol->title,
             'content'         => strip_tags($protocol->content),
             'tags'            => $protocol->tags ?? [],
@@ -220,6 +221,7 @@ class TypesenseService
 
         return [
             'id'              => (string) $thread->id,
+            'slug'            => $thread->slug,
             'title'           => $thread->title,
             'body'            => strip_tags($thread->body),
             'tags'            => $thread->tags ?? [],

@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import PageShell from "../components/layout/page-shell";
 import TwoColumnLayout from "../components/layout/two-column-layout";
 import NewThreadForm from "../components/threads/new-thread-form";
@@ -7,6 +7,7 @@ import EmptyState from "../components/ui/empty-state";
 import ReviewItem from "../components/ui/review-item";
 import ReviewForm from "../components/protocols/review-form";
 import ProtocolStats from "../components/protocols/protocol-stats";
+import VoteButtons from "../components/ui/vote-buttons";
 import { FaRegEdit } from "react-icons/fa";
 import {
   deleteReviewLoading,
@@ -17,20 +18,19 @@ import {
   isReviewAddLoading,
   isReviewFailed,
   isReviewSucceeded,
+  protocolActions,
   selectCurrentProtocol,
   selectCurrentUser,
-  selectProtocolBySlug,
   selectProtocolError,
   selectProtocolLoading,
-  selectProtocolReviews,
   selectProtocolReviewsLoading,
-  selectProtocolThreads,
   selectProtocolThreadsLoading,
   selectThreadSaveError,
   selectThreadSaving,
   threadActions,
   useAppDispatch,
   useAppSelector,
+  voteProtocol,
 } from "../data/store";
 
 import { useEffect, useState } from "react";
@@ -100,10 +100,9 @@ const ProtocolDetailPage = () => {
   const loading = useAppSelector(selectProtocolLoading);
   const error = useAppSelector(selectProtocolError);
   const reviews = useAppSelector(getProtocolReviews);
-  const reviewsLoading = useAppSelector(selectProtocolReviewsLoading);
   const threads = useAppSelector(getProtocolThreads);
   const threadsLoading = useAppSelector(selectProtocolThreadsLoading);
-
+  const reviewsLoading = useAppSelector(selectProtocolReviewsLoading); // kept for future use
   const reviewLoading = useAppSelector(isReviewAddLoading);
   const reviewFailure = useAppSelector(isReviewFailed);
   const reviewSucceeded = useAppSelector(isReviewSucceeded);
@@ -112,8 +111,11 @@ const ProtocolDetailPage = () => {
   const threadAddLoading = useAppSelector(selectThreadSaving);
   const threadAddError = useAppSelector(selectThreadSaveError);
   const reviewDeleteLoading = useAppSelector(deleteReviewLoading);
-
   const user = useAppSelector(selectCurrentUser);
+
+  const [userVote, setUserVote] = useState<"upvote" | "downvote" | null>(null);
+  const [voteLoading, setVoteLoading] = useState(false);
+  const [localVotes, setLocalVotes] = useState({ up: 0, down: 0 });
 
   const [activeTab, setActiveTab] = useState<TabId>("threads");
   const [showThread, setShowThread] = useState(false);
@@ -133,10 +135,13 @@ const ProtocolDetailPage = () => {
     setSelectedReview(review);
     setModalType("edit");
   };
-
   const handleDelete = (review: Partial<Review>) => {
     setSelectedReview(review);
     setModalType("delete");
+  };
+  const closeModal = () => {
+    setSelectedReview(null);
+    setModalType(null);
   };
 
   const handleEditReview = (data: {
@@ -156,16 +161,10 @@ const ProtocolDetailPage = () => {
     new ProtocolsUsecase(dispatch).deleteReview(selectedReview?.id as number);
   };
 
-  const closeModal = () => {
-    setSelectedReview(null);
-    setModalType(null);
-  };
-
   const handleCancelThread = () => {
     setShowThread(false);
     dispatch(threadActions.resetThreadError());
   };
-
   const handleOpenThread = () => {
     setShowThread(true);
     dispatch(threadActions.resetThreadError());
@@ -188,8 +187,7 @@ const ProtocolDetailPage = () => {
     body: string;
   }) => {
     const tagsArr = stringToArray(data.tags);
-    const usecase = new ThreadsUsecase(dispatch);
-    await usecase.createThread({
+    await new ThreadsUsecase(dispatch).createThread({
       body: data.body,
       title: data.title,
       tags: tagsArr,
@@ -201,11 +199,68 @@ const ProtocolDetailPage = () => {
     }
   };
 
+  const handleVote = async (type: "upvote" | "downvote") => {
+    if (!user || voteLoading || !protocol) return;
+
+    // Snapshot BEFORE update (for rollback)
+    const prevVote = userVote;
+    const rollback = {
+      upvotes_count: protocol.upvotes_count ?? 0,
+      downvotes_count: protocol.downvotes_count ?? 0,
+    };
+
+    // Calculate  counts
+    let newUp = rollback.upvotes_count;
+    let newDown = rollback.downvotes_count;
+
+    if (prevVote === type) {
+      // Toggle off
+      if (type === "upvote") newUp = Math.max(0, newUp - 1);
+      else newDown = Math.max(0, newDown - 1);
+      setUserVote(null);
+    } else {
+      // Switch or fresh vote
+      if (prevVote === "upvote") newUp = Math.max(0, newUp - 1);
+      if (prevVote === "downvote") newDown = Math.max(0, newDown - 1);
+      if (type === "upvote") newUp += 1;
+      else newDown += 1;
+      setUserVote(type);
+    }
+
+    setVoteLoading(true);
+
+    dispatch(
+      protocolActions.voteProtocolOptimistic({
+        upvotes_count: newUp,
+        downvotes_count: newDown,
+      }),
+    );
+
+    try {
+      await dispatch(
+        voteProtocol({ id: protocol.id, voteType: type, slug: protocol.slug }),
+      ).unwrap();
+    } catch {
+      setUserVote(prevVote);
+    } finally {
+      setVoteLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!slug) return;
-    const usecase = new ProtocolsUsecase(dispatch);
-    usecase.loadProtocol(slug);
+    new ProtocolsUsecase(dispatch).loadProtocol(slug);
   }, [slug, dispatch]);
+
+  useEffect(() => {
+    if (!protocol) return;
+    setLocalVotes({
+      up: protocol.upvotes_count ?? 0,
+      down: protocol.downvotes_count ?? 0,
+    });
+    // userVote stays as local-only state, reset when protocol changes for now
+    setUserVote(null);
+  }, [protocol?.id]);
 
   useEffect(() => {
     if (isSubmittingReview && !reviewEditLoading) {
@@ -246,13 +301,14 @@ const ProtocolDetailPage = () => {
 
   const tags: string[] = protocol.tags ?? [];
   const tabs: { id: TabId; label: string }[] = [
-    { id: "threads", label: `Threads (${threads?.length})` },
-    { id: "reviews", label: `Reviews (${reviews?.length})` },
+    { id: "threads", label: `Threads (${threads?.length ?? 0})` },
+    { id: "reviews", label: `Reviews (${reviews?.length ?? 0})` },
   ];
 
   return (
     <>
       <PageShell>
+        {/* Breadcrumb + edit link */}
         <div className="flex items-center justify-between gap-2 mb-6 animate-fade-in flex-wrap">
           <div className="flex items-center gap-2 text-sm text-stone-600">
             <Link to="/" className="hover:text-stone-400 transition-colors">
@@ -269,8 +325,7 @@ const ProtocolDetailPage = () => {
               className="text-sm text-stone-400 hover:text-stone-200 border border-[#2a2820] hover:border-[#3a3830] px-3 py-1.5 rounded-lg transition-all"
             >
               <span className="flex items-center gap-2">
-                <FaRegEdit />
-                Edit Protocol
+                <FaRegEdit /> Edit Protocol
               </span>
             </Link>
           )}
@@ -279,6 +334,7 @@ const ProtocolDetailPage = () => {
         <TwoColumnLayout
           main={
             <div className="space-y-6">
+              {/* Header: tags, title, author, rating, VOTES */}
               <div className="animate-fade-up" style={{ opacity: 0 }}>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -287,10 +343,13 @@ const ProtocolDetailPage = () => {
                     ))}
                   </div>
                 )}
+
                 <h1 className="font-serif text-3xl sm:text-4xl text-stone-100 leading-tight mb-4">
                   {protocol.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-stone-500 flex-wrap">
+
+                {/* Author + rating row */}
+                <div className="flex items-center gap-4 text-sm text-stone-500 flex-wrap mb-4">
                   <div className="flex items-center gap-2">
                     <Avatar name={protocol.author?.name ?? "?"} size="sm" />
                     <span>{protocol.author?.name}</span>
@@ -301,8 +360,31 @@ const ProtocolDetailPage = () => {
                     {protocol.reviews_count} reviews)
                   </span>
                 </div>
+
+                <div className="flex items-center gap-3">
+                  <VoteButtons
+                    upvotes={protocol.upvotes_count ?? 0}
+                    downvotes={protocol.downvotes_count ?? 0}
+                    userVote={userVote}
+                    onVote={handleVote}
+                    loading={voteLoading}
+                    compact
+                  />
+                  {!user && (
+                    <span className="text-xs text-stone-600">
+                      <Link
+                        to="/login"
+                        className="text-sage-400 hover:text-sage-300"
+                      >
+                        Sign in
+                      </Link>{" "}
+                      to vote
+                    </span>
+                  )}
+                </div>
               </div>
 
+              {/* Content */}
               <div
                 className="card p-6 animate-fade-up stagger-1"
                 style={{ opacity: 0 }}
@@ -310,6 +392,7 @@ const ProtocolDetailPage = () => {
                 <MarkdownContent content={protocol.content} />
               </div>
 
+              {/* Tabs: Threads / Reviews */}
               <div className="animate-fade-up stagger-2" style={{ opacity: 0 }}>
                 <div className="flex items-center gap-1 border-b border-[#2a2820] mb-5">
                   {tabs.map((tab) => (

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { threadActions, type ThunkApi } from "../index";
+import { commentActions, threadActions, type ThunkApi } from "../index";
 import type {
   CreateThreadPayload,
   Thread,
@@ -7,6 +7,7 @@ import type {
   UpdateThreadPayload,
   VoteResponse,
 } from "../../models";
+import type { Comment } from "../../../models";
 
 export const fetchThreads = createAsyncThunk<
   void,
@@ -37,6 +38,12 @@ export const fetchThread = createAsyncThunk<void, string | number, ThunkApi>(
     try {
       const thread = await extra.threadRepository.getThread(id);
       dispatch(threadActions.fetchThreadSuccess(thread));
+      dispatch(
+        commentActions.fetchCommentsSuccess({
+          threadId: id,
+          comments: thread.root_comments as Comment[],
+        }),
+      );
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to load thread";
@@ -66,12 +73,12 @@ export const createThread = createAsyncThunk<
 
 export const updateThread = createAsyncThunk<
   Thread | undefined,
-  { id: number; payload: UpdateThreadPayload },
+  { slug: string; payload: UpdateThreadPayload },
   ThunkApi
->("threads/update", async ({ id, payload }, { dispatch, extra }) => {
+>("threads/update", async ({ slug, payload }, { dispatch, extra }) => {
   dispatch(threadActions.saveThreadStart());
   try {
-    const thread = await extra.threadRepository.updateThread(id, payload);
+    const thread = await extra.threadRepository.updateThread(slug, payload);
     dispatch(threadActions.updateThreadSuccess(thread));
     return thread;
   } catch (err: unknown) {
@@ -82,21 +89,25 @@ export const updateThread = createAsyncThunk<
   }
 });
 
-export const deleteThread = createAsyncThunk<void, number, ThunkApi>(
-  "threads/delete",
-  async (id, { dispatch, extra }) => {
-    dispatch(threadActions.saveThreadStart());
-    try {
-      await extra.threadRepository.deleteThread(id);
-      dispatch(threadActions.deleteThreadSuccess(id));
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete thread";
-      dispatch(threadActions.saveThreadFailure(message));
-      throw err;
-    }
+export const deleteThread = createAsyncThunk<
+  void,
+  {
+    id: number;
+    slug: string;
   },
-);
+  ThunkApi
+>("threads/delete", async ({ id, slug }, { dispatch, extra }) => {
+  dispatch(threadActions.saveThreadStart());
+  try {
+    await extra.threadRepository.deleteThread(slug);
+    dispatch(threadActions.deleteThreadSuccess(id));
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Failed to delete thread";
+    dispatch(threadActions.saveThreadFailure(message));
+    throw err;
+  }
+});
 
 export const voteThread = createAsyncThunk<
   VoteResponse | undefined,

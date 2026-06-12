@@ -12,6 +12,7 @@ import {
   fetchProtocols,
   fetchProtocolThreads,
   updateReview,
+  voteProtocol,
   type AppDispatch,
 } from "../data/store";
 
@@ -40,5 +41,19 @@ export class ProtocolsUsecase {
 
   deleteReview(reviewId: number) {
     this.dispatch(deleteReview({ reviewId }));
+  }
+
+  upvoteProtocol(data: {
+    slug: string;
+    id: number;
+    voteType: "upvote" | "downvote";
+  }) {
+    this.dispatch(
+      voteProtocol({
+        id: data.id,
+        voteType: data.voteType,
+        slug: data.slug,
+      }),
+    );
   }
 }

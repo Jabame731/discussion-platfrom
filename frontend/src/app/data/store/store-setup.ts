@@ -18,6 +18,10 @@ import protocolReducer from "./reducers/protocol.reducer";
 import authReducer from "./reducers/auth.reducer";
 import commentReducer from "./reducers/comment.reducer";
 import threadReducer from "./reducers/thread.reducer";
+import type {
+  IVoteRepository,
+  VoteRepository,
+} from "../repositories/votes/votes.repository";
 
 const authPersistConfig = {
   key: "auth",

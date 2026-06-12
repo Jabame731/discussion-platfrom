@@ -85,12 +85,14 @@ class ProtocolFactory extends Factory
         $protocol = static::$protocols[static::$index % count(static::$protocols)];
         static::$index++;
 
+        $tags = collect(static::$tagPool)->random(fake()->numberBetween(2, 5))->toArray();
+
         return [
             'user_id'         => User::factory(),
             'title'           => $protocol['title'],
             'slug'            => Str::slug($protocol['title']) . '-' . fake()->unique()->numberBetween(1, 9999),
             'content'         => $protocol['content'],
-            'tags'            => $protocol['tags'],
+            'tags'            => $tags,
             'status'          => fake()->randomElement(['published', 'published', 'published', 'draft']),
             'views_count'     => fake()->numberBetween(0, 5000),
             'reviews_count'   => 0,

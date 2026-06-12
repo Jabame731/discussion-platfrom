@@ -46,3 +46,8 @@ export const getProtocolReviews = (s: RootState) =>
 // Find protocol by slug
 export const selectProtocolBySlug = (slug: string) => (state: RootState) =>
   state.protocols.items.find((p) => p.slug === slug);
+
+// Voting
+export const selectProtocolVoteLoading = (s: RootState) =>
+  s.protocols.voteLoading;
+export const selectProtocolVoteError = (s: RootState) => s.protocols.voteError;

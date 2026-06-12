@@ -23,7 +23,6 @@ const Navbar = () => {
   const navLinks = [
     { to: "/", label: "Protocols" },
     { to: "/threads", label: "Threads" },
-    { to: "/search", label: "Search" },
   ];
 
   const handleLogout = () => {
@@ -37,7 +36,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-7 h-7 rounded-lg bg-sage-700 flex items-center justify-center group-hover:bg-sage-600 transition-colors">
-              <img src="meditation.png" />
+              <img src="meditation.png" alt="main-logo" />
             </div>
             <span className="text-lg text-stone-100 tracking-tight">
               Wellness Hub
@@ -102,12 +101,12 @@ const Navbar = () => {
                 <Link to="/login" className="btn-ghost text-sm">
                   Sign in
                 </Link>
-                <Link
+                {/* <Link
                   to="/register"
                   className="btn-primary text-sm py-1.5 px-4"
                 >
                   Sign up
-                </Link>
+                </Link> */}
               </div>
             )}
 

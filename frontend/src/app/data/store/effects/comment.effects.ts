@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { commentActions, type ThunkApi } from "../index";
+import { commentActions, threadActions, type ThunkApi } from "../index";
 import type { CreateCommentPayload, VoteResponse } from "../../models";
 import type { Comment } from "../../../models";
 
@@ -23,36 +23,44 @@ export const fetchComments = createAsyncThunk<void, string | number, ThunkApi>(
 
 export const createComment = createAsyncThunk<
   Comment | undefined,
-  { threadId: string | number; payload: CreateCommentPayload },
+  {
+    threadId: string | number;
+    payload: CreateCommentPayload;
+    threadSlug: string | number;
+  },
   ThunkApi
->("comments/create", async ({ threadId, payload }, { dispatch, extra }) => {
-  dispatch(commentActions.savingStart());
-  try {
-    const comment = await extra.commentRepository.createComment(
-      threadId,
-      payload,
-    );
-    const key = String(threadId);
-
-    if (payload.parent_id) {
-      dispatch(
-        commentActions.addReplySuccess({
-          threadId: key,
-          parentId: payload.parent_id,
-          reply: comment,
-        }),
+>(
+  "comments/create",
+  async ({ threadId, payload, threadSlug }, { dispatch, extra }) => {
+    dispatch(commentActions.savingStart());
+    try {
+      const comment = await extra.commentRepository.createComment(
+        threadSlug,
+        payload,
       );
-    } else {
-      dispatch(commentActions.addCommentSuccess({ threadId: key, comment }));
-    }
+      const key = String(threadId);
 
-    return comment;
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to post comment";
-    dispatch(commentActions.savingFailure(message));
-  }
-});
+      if (payload.parent_id) {
+        dispatch(
+          commentActions.addReplySuccess({
+            threadId: key,
+            parentId: payload.parent_id,
+            reply: comment,
+          }),
+        );
+      } else {
+        dispatch(commentActions.addCommentSuccess({ threadId: key, comment }));
+        dispatch(threadActions.incrementCommentCount());
+      }
+
+      return comment;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to post comment";
+      dispatch(commentActions.savingFailure(message));
+    }
+  },
+);
 
 export const updateComment = createAsyncThunk<
   Comment | undefined,
@@ -114,10 +122,14 @@ export const voteComment = createAsyncThunk<
         commentId,
         voteType,
       );
+
       dispatch(
-        commentActions.voteCommentSuccess({ threadId, commentId, result }),
+        commentActions.voteCommentSuccess({
+          threadId,
+          commentId,
+          result,
+        }),
       );
-      return result;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to vote";
       dispatch(commentActions.savingFailure(message));

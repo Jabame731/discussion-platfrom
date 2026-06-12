@@ -38,7 +38,6 @@ export class ThreadsUsecase {
   // Load thread + its comments together
   getThread(id: string | number): void {
     this.dispatch(fetchThread(id));
-    this.dispatch(fetchComments(id));
   }
 
   async execute(

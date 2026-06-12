@@ -104,6 +104,13 @@ export interface VoteResponse {
   score: number;
 }
 
+export interface VotesResponseAPI {
+  id: number;
+  votable_type: string;
+  votable_id: number;
+  type: string;
+}
+
 export interface AuthResponse {
   user: User;
   token: string;
@@ -128,6 +135,7 @@ export interface TypesenseThreadDocument {
   id: string;
   title: string;
   body: string;
+  slug: string;
   tags: string[];
   author_name: string;
   protocol_id?: number;

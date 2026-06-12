@@ -96,9 +96,18 @@ const threadSlice = createSlice({
       state.saveError = action.payload;
     },
 
-    // reset the error on clicking onCancel form
     resetThreadError(state) {
       state.saveError = null;
+    },
+
+    // Optimistically increment comment count on current thread
+    incrementCommentCount(state) {
+      if (state.current) {
+        state.current = {
+          ...state.current,
+          comments_count: (state.current.comments_count ?? 0) + 1,
+        };
+      }
     },
 
     // Vote

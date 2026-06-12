@@ -24,12 +24,12 @@ export class ThreadRepository implements IThreadRepository {
     return this.datasource.createThread(payload);
   }
 
-  updateThread(id: number, payload: UpdateThreadPayload): Promise<Thread> {
-    return this.datasource.updateThread(id, payload);
+  updateThread(slug: string, payload: UpdateThreadPayload): Promise<Thread> {
+    return this.datasource.updateThread(slug, payload);
   }
 
-  deleteThread(id: number): Promise<void> {
-    return this.datasource.deleteThread(id);
+  deleteThread(slug: string): Promise<void> {
+    return this.datasource.deleteThread(slug);
   }
 
   voteThread(

@@ -17,7 +17,7 @@ class VoteFactory extends Factory
         return [
             'user_id'      => User::factory(),
             'votable_type' => Thread::class,
-            'votable_id'   => Thread::factory()->create()->id, // ← fixed
+            'votable_id'   => Thread::factory()->create()->id,
             'type'         => fake()->randomElement(['upvote', 'upvote', 'upvote', 'downvote']),
         ];
     }
