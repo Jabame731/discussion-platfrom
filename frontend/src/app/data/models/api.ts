@@ -54,54 +54,6 @@ export const typesenseClient = new Typsense.Client({
   connectionTimeoutSeconds: 5,
 });
 
-// API HELPERS
-export const protocolsApi = {
-  list: (params?: ProtocolListParams) =>
-    api.get<PaginatedResponse<Protocol>>("/protocols", { params }),
-  get: (slug: string | number) => api.get<Protocol>(`/protocols/${slug}`),
-  create: (data: Partial<Protocol>) => api.post<Protocol>("/protocols", data),
-  update: (id: number, data: Partial<Protocol>) =>
-    api.put<Protocol>(`/protocols/${id}`, data),
-  delete: (id: number) => api.delete(`/protocols/${id}`),
-  reviews: (id: string | number, params?: object) =>
-    api.get<PaginatedResponse<Review>>(`/protocols/${id}/reviews`, { params }),
-  addReview: (id: string | number, data: ReviewCreateData) =>
-    api.post<Review>(`/protocols/${id}/reviews`, data),
-  threads: (id: string | number, params?: object) =>
-    api.get<PaginatedResponse<Thread>>(`/protocols/${id}/threads`, { params }),
-};
-
-export const threadsApi = {
-  list: (params?: ThreadListParams) =>
-    api.get<PaginatedResponse<Thread>>("/threads", { params }),
-  get: (id: string | number) => api.get<Thread>(`/threads/${id}`),
-  create: (data: ThreadCreateData) => api.post<Thread>("/threads", data),
-  update: (id: number, data: Partial<Thread>) =>
-    api.put<Thread>(`/threads/${id}`, data),
-  delete: (id: number) => api.delete(`/threads/${id}`),
-  vote: (id: number | string, type: "upvote" | "downvote") =>
-    api.post<VoteResponse>(`/threads/${id}/vote`, { type }),
-};
-
-export const commentsApi = {
-  list: (threadId: number | string) => api.get(`/threads/${threadId}/comments`),
-  create: (threadId: number | string, data: CommentCreateData) =>
-    api.post<Comment>(`/threads/${threadId}/comments`, data),
-  update: (id: number, data: { body: string }) =>
-    api.put<Comment>(`/comments/${id}`, data),
-  delete: (id: number) => api.delete(`/comments/${id}`),
-  vote: (id: number | string, type: "upvote" | "downvote") =>
-    api.post<VoteResponse>(`/comments/${id}/vote`, { type }),
-};
-
-export const authApi = {
-  login: (data: LoginPayload) => api.post<AuthResponse>("/auth/login", data),
-  register: (data: RegisterPayload) =>
-    api.post<AuthResponse>("/auth/register", data),
-  logout: () => api.post("/auth/logout"),
-  me: () => api.get<User>("/auth/me"),
-};
-
 // Typesense search helpers
 export const searchProtocols = async (
   query: string,
