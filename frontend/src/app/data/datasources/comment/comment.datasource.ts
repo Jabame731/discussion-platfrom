@@ -66,8 +66,6 @@ export class CommentDatasource implements ICommentDatasource {
         type,
       });
 
-      console.log(data);
-
       return data;
     } catch (err) {
       throw toDomainError(err);

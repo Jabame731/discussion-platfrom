@@ -103,14 +103,6 @@ const commentSlice = createSlice({
     ) {
       const { threadId, comment } = action.payload;
       const existing = state.byThread[threadId] ?? [];
-      console.log([
-        ...existing,
-        {
-          ...comment,
-          replies: [],
-        },
-      ]);
-
       state.byThread[threadId] = [...existing, { ...comment, replies: [] }];
       state.saving = false;
     },

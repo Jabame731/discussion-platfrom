@@ -31,8 +31,6 @@ const authSlice = createSlice({
       localStorage.setItem("auth_token", action.payload.token);
     },
     authFailure(state, action: PayloadAction<string>) {
-      console.log(action.payload);
-
       state.loading = false;
       state.error = action.payload;
     },

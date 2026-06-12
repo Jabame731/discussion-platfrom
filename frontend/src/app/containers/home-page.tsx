@@ -80,8 +80,6 @@ const HomePage = () => {
     searchProtocols(debouncedQuery, { sort, page, perPage: 12 })
       .then((result) => {
         if (!cancelled) {
-          console.log(result.hits);
-
           setTsHits(result.hits as TypesenseHit<TypesenseProtocolDocument>[]);
           setTsFound(result.found);
         }
@@ -89,7 +87,7 @@ const HomePage = () => {
       .finally(() => {
         if (!cancelled) setTsLoading(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.error(err));
 
     return () => {
       cancelled = true;

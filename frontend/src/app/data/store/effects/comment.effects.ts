@@ -10,8 +10,6 @@ export const fetchComments = createAsyncThunk<void, string | number, ThunkApi>(
     dispatch(commentActions.fetchCommentsStart(key));
     try {
       const comments = await extra.commentRepository.getComments(threadId);
-      console.log(comments);
-
       dispatch(
         commentActions.fetchCommentsSuccess({ threadId: key, comments }),
       );

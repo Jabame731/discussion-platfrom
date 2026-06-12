@@ -17,7 +17,6 @@ export const loginUser = createAsyncThunk<
     return result.user;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Login failed";
-    console.log("message", message);
     dispatch(authActions.authFailure(message));
   }
 });
@@ -36,8 +35,6 @@ export const registerUser = createAsyncThunk<
     return result.user;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Registration failed";
-    console.log("message", message);
-
     dispatch(authActions.authFailure(message));
   }
 });
