@@ -48,7 +48,6 @@ const NewThreadPage = () => {
       protocol_id: protocolId ? Number(protocolId) : undefined,
     });
     if (thread) {
-      toast.success("Thread created!", { position: "bottom-right" });
       navigate(`/threads/${(thread as Thread).id}`);
     }
   };

@@ -264,7 +264,6 @@ const ProtocolDetailPage = () => {
 
   useEffect(() => {
     if (isSubmittingReview && !reviewEditLoading) {
-      toast.success("Review updated", { position: "bottom-right" });
       closeModal();
       setIsSubmittingReview(false);
     }
@@ -272,7 +271,6 @@ const ProtocolDetailPage = () => {
 
   useEffect(() => {
     if (isSubmittingDelete && !reviewDeleteLoading) {
-      toast.success("Review deleted", { position: "bottom-right" });
       closeModal();
       setIsSubmittingDelete(false);
     }

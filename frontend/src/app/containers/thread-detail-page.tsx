@@ -167,7 +167,6 @@ const ThreadDetailPage = () => {
         navigate("/threads");
       }
     } catch {
-      toast.error("Failed to delete thread", { position: "bottom-right" });
       setDeleteLoading(false);
     }
   };

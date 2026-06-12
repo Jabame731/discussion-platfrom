@@ -153,7 +153,6 @@ const CommentNode = ({
         }),
       ).unwrap();
       setIsEditing(false);
-      toast.success("Comment updated", { position: "bottom-right" });
     } catch {
       toast.error("Failed to update comment", { position: "bottom-right" });
     } finally {
