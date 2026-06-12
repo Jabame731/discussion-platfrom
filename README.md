@@ -2,7 +2,15 @@
 
 A community platform for sharing, discovering, and discussing evidence-based wellness protocols. Users can publish protocols, leave star ratings and written reviews, and open threaded discussions — all backed by full-text search powered by Typesense.
 
----
+ **Live app:** [https://discussion-platfrom-4pvq.vercel.app](https://discussion-platfrom-4pvq.vercel.app)
+
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-PHP-FF2D20?style=flat-square&logo=laravel&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat-square&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?style=flat-square&logo=railway&logoColor=white)
 
 ## Table of Contents
 
